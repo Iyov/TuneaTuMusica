@@ -22,6 +22,7 @@ from typing import Optional, Dict, List, Any
 from dataclasses import asdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import subprocess
+import re
 
 # CustomTkinter - Interfaz moderna
 import customtkinter as ctk
@@ -138,7 +139,7 @@ class CachaTuMusicaGUI:
         # Mensaje de bienvenida
         self.welcome_label = ctk.CTkLabel(
             self.header_frame,
-            text="El que sabe, sabe. Vamos a dejar tu música impeque.",
+            text="CachaTuMusica: Dejando tus archivos más ordenados que formación de parada militar. ¡Vamos por esa biblioteca impecable!",
             font=ctk.CTkFont(size=12, slant="italic"),
             text_color="#2ecc71"
         )
@@ -262,7 +263,7 @@ class CachaTuMusicaGUI:
         
         self.start_btn = ctk.CTkButton(
             self.buttons_frame,
-            text="▶️ Iniciar Proceso",
+            text="¡Cacha Tu Música!",
             font=ctk.CTkFont(size=14, weight="bold"),
             height=45,
             fg_color="#2ecc71",
@@ -273,7 +274,7 @@ class CachaTuMusicaGUI:
         
         self.open_report_btn = ctk.CTkButton(
             self.buttons_frame,
-            text="📄 Abrir Reporte",
+            text="Ver Informe",
             font=ctk.CTkFont(size=14),
             height=45,
             fg_color="#3498db",
@@ -372,6 +373,44 @@ class CachaTuMusicaGUI:
         self.log_text.insert("end", linea)
         self.log_text.configure(state="disabled")
         self.log_text.see("end")
+
+    def _parse_filename(self, nombre: str):
+        """Parsea el nombre de archivo para extraer track, artista y título si sigue el formato NN - Artista - Título.ext"""
+        pattern = r'^(?P<track>\d{2})\s*-\s*(?P<artist>.+?)\s*-\s*(?P<title>.+?)\.(?P<ext>[^.]+)$'
+        m = re.match(pattern, nombre, re.IGNORECASE)
+        if not m:
+            return None
+        try:
+            return {
+                'track': int(m.group('track')),
+                'artist': m.group('artist').strip(),
+                'title': m.group('title').strip(),
+                'ext': '.' + m.group('ext')
+            }
+        except Exception:
+            return None
+
+    def _sanitize_windows_name(self, name: str) -> str:
+        invalid = '<>:"/\\|?*'
+        for ch in invalid:
+            name = name.replace(ch, '_')
+        return name.strip()
+
+    def _rename_if_needed(self, archivo: Path, track: Optional[int], artista: Optional[str], titulo: Optional[str]) -> Optional[str]:
+        if not (track and artista and titulo):
+            return None
+        nuevo_basename = f"{str(track).zfill(2)} - {artista} - {titulo}{archivo.suffix}"
+        nuevo_nombre = self._sanitize_windows_name(nuevo_basename)
+        if nuevo_nombre != archivo.name:
+            try:
+                nuevo_path = archivo.with_name(nuevo_nombre)
+                os.rename(archivo, nuevo_path)
+                self._log(f"Renombrando: {archivo.name} -> {nuevo_path.name}", "info")
+                return str(nuevo_path)
+            except Exception as e:
+                self._log(f"⚠️ No se pudo renombrar {archivo.name}: {e}", "error")
+                return None
+        return None
     
     def _actualizar_progreso(self, actual: int, total: int):
         """Actualiza la barra de progreso"""
@@ -519,7 +558,29 @@ class CachaTuMusicaGUI:
                         resultado['fuente'] = 'IA'
                         resultado['datos'] = datos_ia
                     else:
-                        resultado['status'] = 'no_encontrado'
+                        # Regla 1/3: intentar usar Nombre para rellenar metadatos si la IA falla
+                        parsed_nm = self._parse_filename(archivo.name)
+                        if parsed_nm:
+                            datos_nm = {
+                                'title': parsed_nm['title'],
+                                'artist': parsed_nm['artist'],
+                                'album': tags_actuales.get('album'),
+                                'year': tags_actuales.get('year'),
+                                'genre': tags_actuales.get('genre')
+                            }
+                            resultado['status'] = 'actualizado'
+                            resultado['fuente'] = 'NombreParse'
+                            resultado['datos'] = datos_nm
+                            # Escribir tags directamente a partir del parse
+                            self._escribir_tags(archivo, {
+                                'title': parsed_nm['title'],
+                                'artist': parsed_nm['artist'],
+                                'album': tags_actuales.get('album'),
+                                'year': tags_actuales.get('year'),
+                                'genre': tags_actuales.get('genre')
+                            })
+                        else:
+                            resultado['status'] = 'no_encontrado'
                 else:
                     resultado['status'] = 'no_encontrado'
             
@@ -533,6 +594,12 @@ class CachaTuMusicaGUI:
                     'genre': resultado['datos'].get('genre', tags_actuales.get('genre'))
                 }
                 self._escribir_tags(archivo, nuevos_tags)
+                # Intentar renombrar basado en la información obtenida de la ruta de nombre original
+                parsed = self._parse_filename(archivo.name)
+                if parsed:
+                    nuevo_path = self._rename_if_needed(archivo, parsed.get('track'), parsed.get('artist'), parsed.get('title'))
+                    if nuevo_path:
+                        resultado['nuevo_nombre'] = nuevo_path
             
         except Exception as e:
             resultado['status'] = 'error'
@@ -703,6 +770,7 @@ Responde SOLO en JSON:
             icono = "✅"
             fuente = resultado['fuente']
             self._log(f"{icono} Actualizado: {nombre} | {'🤖' if 'IA' in fuente else '🎵'} Vía {fuente}", "success")
+            self._log(f"🔄 Actualizando Tags para: {nombre}", "info")
         elif resultado['status'] == 'no_encontrado':
             self._log(f"❓ No encontrado: {nombre}", "warning")
         else:
@@ -716,8 +784,8 @@ Responde SOLO en JSON:
         with open(filename, 'w', newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f)
             writer.writerow([
-                'Archivo', 'Estado', 'Fuente', 
-                'Título Anterior', 'Artista Anterior', 
+                'Ruta Original', 'Nuevo Nombre', 'Estado', 'Fuente',
+                'Título Anterior', 'Artista Anterior',
                 'Título Nuevo', 'Artista Nuevo', 'Álbum', 'Año', 'Género'
             ])
             
@@ -725,9 +793,12 @@ Responde SOLO en JSON:
                 r = item['resultado']
                 tags_previos = r.get('tags_previos', {})
                 datos = r.get('datos', {})
+                nuevo_nombre = item.get('nuevo_nombre', '')
+                ruta_original = item['archivo']
                 
                 writer.writerow([
-                    item['archivo'],
+                    ruta_original,
+                    nuevo_nombre,
                     r['status'],
                     r.get('fuente', 'N/A'),
                     tags_previos.get('title', ''),
@@ -739,13 +810,29 @@ Responde SOLO en JSON:
                     datos.get('genre', '')
                 ])
         
+        # Crear reporte final acopiando el contenido para uso inmediato
+        self._copiar_reporte_final(filename)
         return os.path.abspath(filename)
+
+    def _copiar_reporte_final(self, origen: str, destino: str = "reporte_final_cachatumusica.csv"):
+        """Copiar reporte generado a un archivo final común"""
+        try:
+            if os.path.exists(origen):
+                shutil.copy2(origen, destino)
+                self._log(f"Reporte final actualizado: {destino}", "info")
+        except Exception as e:
+            self._log(f"⚠️ No se pudo actualizar reporte final: {e}", "warning")
     
     def _proceso_completado(self, reporte_path: str):
         """Llamado cuando termina el proceso"""
         self._log("\n" + "=" * 60, "info")
         self._log("✨ ¡Proceso completado!", "success")
         self._log(f"📊 Reporte guardado en: {reporte_path}", "info")
+        # Intentar abrir el reporte final automáticamente si existe
+        final_path = os.path.abspath("reporte_final_cachatumusica.csv")
+        if os.path.exists(final_path):
+            self._log(f"Abriendo reporte final: {final_path}", "info")
+            self._open_path(final_path)
         self._log("=" * 60, "info")
         
         self.status_bar.configure(text="Proceso completado ✓")
@@ -756,17 +843,22 @@ Responde SOLO en JSON:
         if messagebox.askyesno("Proceso Completado", 
             "¡El proceso ha finalizado!\n\n¿Deseas abrir el reporte ahora?"):
             self._abrir_reporte()
+        
+        # Mensaje final pedido por prompt maestro
+        self._log("¡Pega lista! Tu música quedó más ordenada que estante de farmacia.", "info")
     
     def _abrir_reporte(self):
         """Abre el reporte CSV"""
         try:
-            if hasattr(self, 'reporte_path') and os.path.exists(self.reporte_path):
+            final_path = os.path.abspath("reporte_final_cachatumusica.csv")
+            path_to_open = final_path if os.path.exists(final_path) else getattr(self, 'reporte_path', None)
+            if path_to_open and os.path.exists(path_to_open):
                 if sys.platform == 'win32':
-                    os.startfile(self.reporte_path)
+                    os.startfile(path_to_open)
                 elif sys.platform == 'darwin':
-                    subprocess.call(['open', self.reporte_path])
+                    subprocess.call(['open', path_to_open])
                 else:
-                    subprocess.call(['xdg-open', self.reporte_path])
+                    subprocess.call(['xdg-open', path_to_open])
             else:
                 # Buscar reportes recientes
                 reportes = sorted(Path('.').glob('reporte_cachatumusica_*.csv'))
@@ -786,6 +878,18 @@ Responde SOLO en JSON:
     def run(self):
         """Inicia la aplicación"""
         self.root.mainloop()
+
+    def _open_path(self, path: str):
+        """Abre un archivo o ruta con la aplicación por defecto"""
+        try:
+            if sys.platform == 'win32':
+                os.startfile(path)
+            elif sys.platform == 'darwin':
+                subprocess.call(['open', path])
+            else:
+                subprocess.call(['xdg-open', path])
+        except Exception as e:
+            self._log(f"⚠️ No se pudo abrir el reporte automáticamente: {e}", "warning")
 
 
 def main():
