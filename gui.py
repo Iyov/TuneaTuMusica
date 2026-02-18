@@ -272,6 +272,18 @@ class CachaTuMusicaGUI:
         )
         self.start_btn.pack(side="left", expand=True, fill="both", padx=(0, 5))
         
+        # Diagnóstico (Sandbox) - pruebas locales
+        self.diagnostico_btn = ctk.CTkButton(
+            self.buttons_frame,
+            text="Diagnóstico",
+            font=ctk.CTkFont(size=14),
+            height=45,
+            fg_color="#f1c40f",
+            hover_color="#f39c12",
+            command=self._run_sandbox_tests
+        )
+        self.diagnostico_btn.pack(side="left", expand=True, fill="both", padx=(5, 5))
+
         self.open_report_btn = ctk.CTkButton(
             self.buttons_frame,
             text="Ver Informe",
@@ -411,6 +423,65 @@ class CachaTuMusicaGUI:
                 self._log(f"⚠️ No se pudo renombrar {archivo.name}: {e}", "error")
                 return None
         return None
+
+    # Extras para Casos A-D (Path-based metadata derivation)
+    def _extract_artist_from_path(self, archivo: Path) -> Optional[str]:
+        try:
+            return archivo.parent.parent.name
+        except Exception:
+            return None
+
+    def _extract_album_year_from_path(self, archivo: Path) -> (Optional[str], Optional[str]):
+        album_dir = archivo.parent.name
+        m = __import__('re').match(r'^\((\d{4})\)\s*(.+)$', album_dir)
+        if m:
+            year = m.group(1)
+            album = m.group(2).strip()
+            return album, year
+        return album_dir, None
+
+    def _classify_case_for_file(self, archivo: Path) -> str:
+        parsed = self._parse_filename(archivo.name)
+        try:
+            tags = self._leer_tags(archivo)
+        except Exception:
+            tags = {}
+        artist_tag = bool(tags.get('artist'))
+        title_tag = bool(tags.get('title'))
+        album_tag = bool(tags.get('album'))
+        year_tag = bool(tags.get('year'))
+        genre_tag = bool(tags.get('genre'))
+        has_full_tags = artist_tag and title_tag and album_tag and year_tag and genre_tag
+
+        name_patA = parsed is not None and parsed.get('track') is not None and parsed.get('title') is not None
+        name_patB = parsed is not None and parsed.get('track') is not None and parsed.get('artist') is not None and parsed.get('title') is not None
+
+        if has_full_tags and name_patB:
+            return 'D'
+        if name_patA:
+            if not has_full_tags:
+                return 'A'
+            else:
+                return 'B'
+        return 'C'
+
+    def _prevalidate_directory(self, archivos: List[Path]) -> str:
+        import csv
+        path = 'reporte_prevalidacion.csv'
+        with open(path, 'w', newline='', encoding='utf-8') as f:
+            w = csv.writer(f)
+            w.writerow(['Archivo','Caso','ArtistPath','AlbumPath','YearPath','TitleFromName'])
+            for archivo in archivos:
+                caso = self._classify_case_for_file(archivo)
+                artist = self._extract_artist_from_path(archivo)
+                album, year = self._extract_album_year_from_path(archivo)
+                title_from_name = None
+                parsed = self._parse_filename(archivo.name)
+                if parsed:
+                    title_from_name = parsed.get('title')
+                w.writerow([str(archivo), caso, artist, album, year, title_from_name])
+        self._log(f"Prevalidación generada: {path}", "info")
+        return path
     
     def _actualizar_progreso(self, actual: int, total: int):
         """Actualiza la barra de progreso"""
@@ -493,6 +564,10 @@ class CachaTuMusicaGUI:
             self.procesados = 0
             resultados = []
             
+            # Phase 1: Prevalidación CASOS A-D
+            self._log("🔎 Realizando prevalidación de Casos (A-D)…", "info")
+            preval_path = self._prevalidate_directory(archivos)
+            self._log(f"Prevalidación Generada: {preval_path}", "info")
             workers = int(self.workers_var.get())
             self.root.after(0, lambda: self._log(f"🔄 Procesando {total} archivos con {workers} workers...\n", "info"))
             
@@ -531,10 +606,12 @@ class CachaTuMusicaGUI:
     
     def _procesar_un_archivo(self, archivo: Path) -> Dict:
         """Procesa un único archivo"""
+        case = self._classify_case_for_file(archivo)
         resultado = {
             'status': 'error',
             'fuente': 'N/A',
-            'datos': {}
+            'datos': {},
+            'caso': case
         }
         
         try:
@@ -583,23 +660,71 @@ class CachaTuMusicaGUI:
                             resultado['status'] = 'no_encontrado'
                 else:
                     resultado['status'] = 'no_encontrado'
-            
-            # Escribir tags si no es dry run
-            if resultado['status'] == 'actualizado' and not self.dry_run:
-                nuevos_tags = {
-                    'title': resultado['datos'].get('title', tags_actuales.get('title')),
-                    'artist': resultado['datos'].get('artist', tags_actuales.get('artist')),
-                    'album': resultado['datos'].get('album', tags_actuales.get('album')),
-                    'year': resultado['datos'].get('year', tags_actuales.get('year')),
-                    'genre': resultado['datos'].get('genre', tags_actuales.get('genre'))
-                }
-                self._escribir_tags(archivo, nuevos_tags)
-                # Intentar renombrar basado en la información obtenida de la ruta de nombre original
-                parsed = self._parse_filename(archivo.name)
-                if parsed:
-                    nuevo_path = self._rename_if_needed(archivo, parsed.get('track'), parsed.get('artist'), parsed.get('title'))
-                    if nuevo_path:
-                        resultado['nuevo_nombre'] = nuevo_path
+                
+                # Caso B: renombrar desde Tags si el nombre no está en Patrón B (y hay datos en Tags)
+                if case == 'B' and not self.dry_run:
+                    parsed_case_b = self._parse_filename(archivo.name)
+                    track_b = tags_actuales.get('track') or (parsed_case_b.get('track') if parsed_case_b else None)
+                    artist_b = tags_actuales.get('artist') or (parsed_case_b.get('artist') if parsed_case_b else None)
+                    title_b = tags_actuales.get('title') or (parsed_case_b.get('title') if parsed_case_b else None)
+                    if track_b and artist_b and title_b:
+                        nuevo_path_b = self._rename_if_needed(archivo, int(track_b) if isinstance(track_b, (int, str)) else None, artist_b, title_b)
+                        if nuevo_path_b:
+                            resultado['nuevo_nombre'] = nuevo_path_b
+                        resultado['status'] = 'actualizado'
+                        resultado['caso'] = 'B'
+                        resultado['datos'] = {'title': title_b, 'artist': artist_b, 'album': tags_actuales.get('album'), 'year': tags_actuales.get('year'), 'genre': tags_actuales.get('genre')}
+                # Escribir tags y renombrar según reglas
+                if resultado['status'] == 'actualizado' and not self.dry_run:
+                    # Normalizar datos de 'datos' a dict
+                    datos = resultado.get('datos', {})
+                    datos_dict = {}
+                    if isinstance(datos, dict):
+                        datos_dict = datos
+                    else:
+                        try:
+                            datos_dict = datos.to_dict()  # type: ignore
+                        except Exception:
+                            datos_dict = {}
+
+                    parsed = self._parse_filename(archivo.name)
+                    nuevos_tags = {
+                        'title': datos_dict.get('title', getattr(tags_actuales, 'title', None)),
+                        'artist': datos_dict.get('artist', getattr(tags_actuales, 'artist', None)),
+                        'album': datos_dict.get('album', getattr(tags_actuales, 'album', None)),
+                        'year': datos_dict.get('year', getattr(tags_actuales, 'year', None)),
+                        'genre': datos_dict.get('genre', getattr(tags_actuales, 'genre', None)),
+                        'track': datos_dict.get('track', getattr(tags_actuales, 'track', None))
+                    }
+                    # Phase A: rellenar desde ruta si fallan datos
+                    if case == 'A':
+                        artist_from_path = self._extract_artist_from_path(archivo)
+                        album_from_path, year_from_path = self._extract_album_year_from_path(archivo)
+                        if not nuevos_tags.get('artist') and artist_from_path:
+                            nuevos_tags['artist'] = artist_from_path
+                        if not nuevos_tags.get('album') and album_from_path:
+                            nuevos_tags['album'] = album_from_path
+                        if not nuevos_tags.get('year') and year_from_path:
+                            nuevos_tags['year'] = year_from_path
+                        if not nuevos_tags.get('genre'):
+                            nuevos_tags['genre'] = 'Metal'
+                    self._escribir_tags(archivo, {
+                        'title': nuevos_tags['title'],
+                        'artist': nuevos_tags['artist'],
+                        'album': nuevos_tags['album'],
+                        'year': nuevos_tags['year'],
+                        'genre': nuevos_tags['genre']
+                    })
+                    # Renombrar al Patrón B si tenemos track, artista y title
+                    if (nuevos_tags['track'] or (parsed and parsed.get('track'))) and (nuevos_tags['artist'] or (parsed and parsed.get('artist'))) and (nuevos_tags['title'] or (parsed and parsed.get('title'))):
+                        t = nuevos_tags['track'] if nuevos_tags['track'] else parsed.get('track')
+                        a = nuevos_tags['artist'] if nuevos_tags['artist'] else parsed.get('artist')
+                        ti = nuevos_tags['title'] if nuevos_tags['title'] else parsed.get('title')
+                        nuevo_path = self._rename_if_needed(archivo, int(t) if t is not None else None, a, ti)
+                        if nuevo_path:
+                            resultado['nuevo_nombre'] = nuevo_path
+                        if nuevo_path:
+                            resultado['nuevo_nombre'] = nuevo_path
             
         except Exception as e:
             resultado['status'] = 'error'
@@ -640,6 +765,15 @@ class CachaTuMusicaGUI:
     def _identificar_fingerprint(self, archivo: Path) -> Optional[Dict]:
         """Identifica usando fingerprinting"""
         try:
+            # Sandbox mode: bypass real fingerprinting for tests
+            if os.environ.get('SANDBOX_TEST') == '1':
+                return {
+                    'title': 'Demo Title',
+                    'artist': 'Demo Artist',
+                    'album': 'Demo Album',
+                    'year': '2020',
+                    'genre': 'Rock'
+                }
             duracion, fingerprint = acoustid.fingerprint_file(str(archivo))
             resultados = acoustid.lookup(
                 self.config['acoustid_api_key'],
@@ -682,6 +816,15 @@ class CachaTuMusicaGUI:
     def _inferir_ia(self, nombre_archivo: str, tags_actuales: Dict) -> Optional[Dict]:
         """Infiere metadatos usando IA"""
         try:
+            if os.environ.get('SANDBOX_TEST') == '1':
+                return {
+                    'title': 'Demo Title IA',
+                    'artist': 'Demo Artist IA',
+                    'album': 'Demo Album IA',
+                    'year': '2021',
+                    'genre': 'Rock',
+                    'confidence': 'alta'
+                }
             import openai
             openai.api_key = self.config['openai_api_key']
             
@@ -795,11 +938,12 @@ Responde SOLO en JSON:
                 datos = r.get('datos', {})
                 nuevo_nombre = item.get('nuevo_nombre', '')
                 ruta_original = item['archivo']
-                
+                # Map estado a español/estándar
+                estado_csv = self._valor_estado_csv(r['status'])
                 writer.writerow([
                     ruta_original,
                     nuevo_nombre,
-                    r['status'],
+                    estado_csv,
                     r.get('fuente', 'N/A'),
                     tags_previos.get('title', ''),
                     tags_previos.get('artist', ''),
@@ -813,6 +957,14 @@ Responde SOLO en JSON:
         # Crear reporte final acopiando el contenido para uso inmediato
         self._copiar_reporte_final(filename)
         return os.path.abspath(filename)
+
+    def _valor_estado_csv(self, estado: str) -> str:
+        mapping = {
+            'actualizado': 'Éxito',
+            'no_encontrado': 'Omitido',
+            'error': 'Fallido'
+        }
+        return mapping.get(estado, estado)
 
     def _copiar_reporte_final(self, origen: str, destino: str = "reporte_final_cachatumusica.csv"):
         """Copiar reporte generado a un archivo final común"""
@@ -845,7 +997,7 @@ Responde SOLO en JSON:
             self._abrir_reporte()
         
         # Mensaje final pedido por prompt maestro
-        self._log("¡Pega lista! Tu música quedó más ordenada que estante de farmacia.", "info")
+        self._log("¡Prueba superada! Tu música está en buenas manos, CachaTuMusica está listo.", "success")
     
     def _abrir_reporte(self):
         """Abre el reporte CSV"""
@@ -890,6 +1042,29 @@ Responde SOLO en JSON:
                 subprocess.call(['xdg-open', path])
         except Exception as e:
             self._log(f"⚠️ No se pudo abrir el reporte automáticamente: {e}", "warning")
+
+    def _run_sandbox_tests(self):
+        """Ejecuta pruebas sandbox sin impactar archivos reales"""
+        self._log("🔬 Ejecutando Diagnóstico (Sandbox)...", "info")
+        t = threading.Thread(target=self._run_sandbox_worker, daemon=True)
+        t.start()
+
+    def _run_sandbox_worker(self):
+        import subprocess
+        env = dict(os.environ)
+        env['SANDBOX_TEST'] = '1'
+        try:
+            proc = subprocess.run([sys.executable, 'sandbox_test.py'], env=env, capture_output=True, text=True, timeout=180)
+            if proc.stdout:
+                self._log(proc.stdout, 'info')
+            if proc.stderr:
+                self._log(proc.stderr, 'error')
+            if proc.returncode == 0:
+                self._log("✅ Diagnóstico completado con éxito.", 'success')
+            else:
+                self._log("🚫 Diagnóstico con errores. Revisa el log.", 'warning')
+        except Exception as e:
+            self._log(f"⚠️ Error en Diagnóstico: {e}", 'error')
 
 
 def main():

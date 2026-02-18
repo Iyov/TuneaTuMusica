@@ -148,11 +148,11 @@ config.json
 # Reportes generados por CachaTuMusica
 log_actualizacion.csv
 reporte.md
-reporte_cachatumusica_*.csv
+reporte_*.csv
 *.backup_*/
 
 # Audio files (common in audio tagger projects)
-*.mp3
+#*.mp3
 *.flac
 *.wav
 *.aac
