@@ -1,0 +1,17 @@
+{
+    "_comentario": "Configuración de CachaTuMusica",
+    "_instrucciones": "Completa tus API keys o usa variables de entorno",
+    
+    "acoustid_api_key": "tu_api_key_aqui",
+    "musicbrainz_user": "",
+    "musicbrainz_password": "",
+    
+    "openai_api_key": "",
+    "ia_enabled": false,
+    
+    "_notas": {
+        "acoustid": "Obtén tu API key gratuita en https://acoustid.org/",
+        "musicbrainz": "Opcional: Usuario y password de MusicBrainz para búsquedas avanzadas",
+        "openai": "Opcional: API key de OpenAI para fallback con IA"
+    }
+}
