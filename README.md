@@ -1,4 +1,4 @@
-# TuneaTuMusica 🎵
+# <img src="img/TuneaTuMusica_Logo.png" width="40" height="40" valign="middle"> TuneaTuMusica 🎵
 
 **TuneaTuMusica** es la solución definitiva para acabar con el caos de los nombres de archivos genéricos en tu biblioteca musical. ¿Cansado de ver `Track 01.mp3` o `descarga_final_12.mp3`? Esta suite combina extracción inteligente, identificación acústica e IA para **renombrar y etiquetar** tus canciones de forma impecable.
 
@@ -31,6 +31,37 @@ La lógica de extracción ha sido refinada para interpretar tu estructura de car
 
 **Estructura Ideal:**
 `Musica/Metal/Caliban/(2006) The Undying Darkness/01 - Intro.mp3`
+---
+
+## ⚡ Lógica de Decisión: Los 4 Casos de Clasificación
+
+TuneaTuMusica aplica lógica de ingeniería para resolver el estado de cada archivo:
+
+### 🟢 Caso A: "La Carpeta manda" (Ruta ➝ Tags)
+El nombre del archivo o su ubicación son perfectos, pero los "Tags" internos están vacíos. El motor extrae la info de la ruta, **escribe los Tags** y asegura el formato estricto.
+
+### 🔵 Caso B: "Los Tags mandan" (Tags ➝ Ruta)
+El archivo tiene metadatos internos correctos, pero la ruta es un caos. El motor usa los Tags para **mover y renombrar el archivo** al estándar estricto.
+
+### 🟡 Caso C: "Búsqueda de Identidad" (Cloud ➝ All)
+Ni la ruta ni los Tags sirven. El motor "escucha" el audio (**AcoustID**) o usa **IA** para descubrir quién es, arreglando todo bajo el estándar.
+
+### ⚪ Caso D: "Estado Perfecto"
+El nombre está ordenado, los Tags coincidan y la carpeta es la correcta. Solo se valida y se marca como impecable.
+
+---
+
+## 📐 Estándar de Nomenclatura Estricta
+
+Independientemente del caso detectado, el resultado final siempre será:
+
+`/[Nombre Banda]/([Año]) [Nombre del Disco]/[NumTrack] - [Nombre Canción].[Ext]`
+
+### Especificación:
+- **Banda (N-2)**: Carpeta abuela en *Title Case*.
+- **Disco (N-1)**: Carpeta padre como `(AAAA) Titulo`.
+- **Pista**: Formato `XX - `.
+- **Género**: Forzado globalmente a `Metal`.
 
 ---
 

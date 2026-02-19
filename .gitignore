@@ -145,10 +145,12 @@ cython_debug/
 .env.local
 config.json
 
-# Reportes generados por CachaTuMusica
+# Reportes generados por TuneaTuMusica
 log_*.csv
 reporte*.md
 reporte*.csv
+reporte_tuneatumusica_*.csv
+log_tuneatumusica_*.csv
 *.backup_*/
 
 # Audio files (common in audio tagger projects)

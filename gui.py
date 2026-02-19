@@ -29,6 +29,7 @@ import re
 # CustomTkinter - Interfaz moderna
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
+from PIL import Image
 
 # Procesamiento de audio
 import mutagen
@@ -119,33 +120,54 @@ class TuneaTuMusicaGUI:
         # ========== HEADER ==========
         self.header_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         self.header_frame.pack(fill="x", pady=(0, 20))
+
+        # Logo Frame (Left)
+        self.logo_frame = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+        self.logo_frame.pack(side="left", padx=(0, 20))
+
+        # Logo
+        try:
+            logo_path = os.path.join("img", "TuneaTuMusica_Logo.png")
+            if os.path.exists(logo_path):
+                # Reducimos un poco más el tamaño para optimizar espacio
+                logo_img = ctk.CTkImage(light_image=Image.open(logo_path),
+                                       dark_image=Image.open(logo_path),
+                                       size=(150, 90))
+                self.logo_label = ctk.CTkLabel(self.logo_frame, image=logo_img, text="")
+                self.logo_label.pack()
+        except Exception as e:
+            print(f"Error cargando logo: {e}")
         
+        # Info Frame (Right)
+        self.info_frame = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+        self.info_frame.pack(side="left", fill="both", expand=True)
+
         # Título
         self.titulo = ctk.CTkLabel(
-            self.header_frame,
+            self.info_frame,
             text="TuneaTuMusica",
             font=ctk.CTkFont(size=32, weight="bold"),
             text_color="#3498db"
         )
-        self.titulo.pack()
+        self.titulo.pack(anchor="w")
         
         # Subtítulo
         self.subtitulo = ctk.CTkLabel(
-            self.header_frame,
+            self.info_frame,
             text="Actualizador de Metadatos Musicales",
             font=ctk.CTkFont(size=14),
-            text_color="gray"
+            text_color="#7f8c8d"
         )
-        self.subtitulo.pack()
-        
-        # Mensaje de bienvenida
+        self.subtitulo.pack(anchor="w")
+
+        # Mensaje de bienvenida (Slogan)
         self.welcome_label = ctk.CTkLabel(
-            self.header_frame,
+            self.info_frame,
             text="TuneaTuMusica: Dejando tus archivos más ordenados que formación de parada militar. ¡Vamos por esa biblioteca impecable!",
             font=ctk.CTkFont(size=12, slant="italic"),
-            text_color="#2ecc71"
+            text_color="#27ae60"
         )
-        self.welcome_label.pack(pady=(5, 0))
+        self.welcome_label.pack(anchor="w", pady=(5, 0))
         
         # ========== SECCIÓN DE CARPETA ==========
         self.folder_frame = ctk.CTkFrame(self.main_frame)
@@ -265,7 +287,7 @@ class TuneaTuMusicaGUI:
         
         self.start_btn = ctk.CTkButton(
             self.buttons_frame,
-            text="¡Cacha Tu Música!",
+            text="Tunea Tu Música",
             font=ctk.CTkFont(size=14, weight="bold"),
             height=45,
             fg_color="#2ecc71",
@@ -533,7 +555,7 @@ class TuneaTuMusicaGUI:
         self._log("✨ ¡Proceso completado!", "success")
         self._log(f"📊 Reporte guardado en: {reporte_path}", "info")
         # Intentar abrir el reporte final automáticamente si existe
-        final_path = os.path.abspath("reporte_final_cachatumusica.csv")
+        final_path = os.path.abspath("reporte_final_tuneatumusica.csv")
         if os.path.exists(final_path):
             self._log(f"Abriendo reporte final: {final_path}", "info")
             self._open_path(final_path)
@@ -549,12 +571,12 @@ class TuneaTuMusicaGUI:
             self._abrir_reporte()
         
         # Mensaje final pedido por prompt maestro
-        self._log("¡Prueba superada! Tu música está en buenas manos, CachaTuMusica está listo.", "success")
+        self._log("¡Prueba superada! Tu música está en buenas manos, TuneaTuMusica está listo.", "success")
     
     def _abrir_reporte(self):
         """Abre el reporte CSV"""
         try:
-            final_path = os.path.abspath("reporte_final_cachatumusica.csv")
+            final_path = os.path.abspath("reporte_final_tuneatumusica.csv")
             path_to_open = final_path if os.path.exists(final_path) else getattr(self, 'reporte_path', None)
             if path_to_open and os.path.exists(path_to_open):
                 if sys.platform == 'win32':
@@ -565,7 +587,7 @@ class TuneaTuMusicaGUI:
                     subprocess.call(['xdg-open', path_to_open])
             else:
                 # Buscar reportes recientes
-                reportes = sorted(Path('.').glob('reporte_cachatumusica_*.csv'))
+                reportes = sorted(Path('.').glob('reporte_tuneatumusica_*.csv'))
                 if reportes:
                     reporte = reportes[-1]
                     if sys.platform == 'win32':
