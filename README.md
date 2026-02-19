@@ -1,14 +1,14 @@
-# CachaTuMusica 🎵 — Edición Pro
+# TuneaTuMusica 🎵 — Edición Pro
 
-**CachaTuMusica** es una solución profesional para la organización y optimización de metadatos de bibliotecas musicales. Diseñada para transformar el caos en orden, esta suite combina extracción inteligente basada en rutas, identificación acústica (AcoustID) y potencia de IA (GPT-4) para garantizar que cada canción esté perfectamente etiquetada y nombrada.
+**TuneaTuMusica** es una solución profesional para la organización y optimización de metadatos de bibliotecas musicales. Diseñada para transformar el caos en orden, esta suite combina extracción inteligente basada en rutas, identificación acústica (AcoustID) y potencia de IA (GPT-4) para garantizar que cada canción esté perfectamente etiquetada y nombrada.
 
-> � **Edición Pro**: Máxima precisión, automatización refinada y seguridad total.
+>  **Edición Pro**: Máxima precisión, automatización refinada y seguridad total.
 
 ---
 
 ## ✨ Características Premium
 
-![Interfaz Gráfica de CachaTuMusica](img/CachaTuMusica_GUI.png)
+![Interfaz Gráfica de TuneaTuMusica](img/TuneaTuMusica_GUI.png)
 
 - 🖥️ **Interfaz Vanguardista**: UI optimizada con **CustomTkinter**, diseñada para la eficiencia.
 - 🧹 **Edición Ordenaito**: Renombrado automático bajo el estándar estricto `NN - Artista - Título.ext`.
@@ -17,7 +17,7 @@
 - 🤖 **IA Fallback Engine**: GPT-4o-mini para resolver metadatos desde contextos complejos si el fingerprint falla.
 - 📊 **Taxonomía de Casos (A-D)**: Clasificación inteligente para aplicar la acción exacta necesaria.
 - 🧪 **Sandbox Real-File**: Suite de pruebas que opera sobre tu biblioteca real en modo simulación (Dry-run).
-- �️ **Seguridad Bancaria**: Backups automáticos `.backup_YYMMDD/` y reportes CSV/MD detallados.
+- ️ **Seguridad Bancaria**: Backups automáticos `.backup_YYMMDD/` y reportes CSV/MD detallados.
 
 ---
 
@@ -36,7 +36,7 @@ La lógica de extracción ha sido refinada para interpretar tu estructura de car
 
 ## 📊 La Inteligencia Detrás: Los 4 Casos de Clasificación
 
-CachaTuMusica no "adivina", aplica lógica de ingeniería para resolver el estado de cada archivo. Aquí explicamos cómo decide qué hacer:
+TuneaTuMusica no "adivina", aplica lógica de ingeniería para resolver el estado de cada archivo. Aquí explicamos cómo decide qué hacer:
 
 ### 🟢 Caso A: "La Carpeta manda"
 *   **Diagnóstico**: El nombre del archivo o su ubicación son perfectos, pero los "Tags" internos están vacíos o dicen "Desconocido".
@@ -63,8 +63,8 @@ CachaTuMusica no "adivina", aplica lógica de ingeniería para resolver el estad
 
 ### Instalación
 ```bash
-git clone https://github.com/Iyov/CachaTuMusica.git
-cd CachaTuMusica
+git clone https://github.com/Iyov/TuneaTuMusica.git
+cd TuneaTuMusica
 pip install -r requirements.txt
 ```
 

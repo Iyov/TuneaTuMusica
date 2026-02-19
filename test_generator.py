@@ -25,7 +25,7 @@ def main():
     print(proc.stdout)
     print(proc.stderr)
 
-    reports = sorted(Path('.').glob('reporte_final_cachatumusica.csv'))
+    reports = sorted(Path('.').glob('reporte_final_tuneatumusica.csv'))
     if reports:
         print("Reporte generado:", reports[-1].as_posix())
         with open(reports[-1], 'r', encoding='utf-8') as f:

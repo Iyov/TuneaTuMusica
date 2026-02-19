@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-CachaTuMusica
-=============
+TuneaTuMusica
+=================================
 
 Este script recorre directorios buscando archivos de audio y actualiza
 sus metadatos ID3 utilizando audio fingerprinting (AcoustID/MusicBrainz)
@@ -184,7 +184,7 @@ class Configuracion:
         
         # Configurar MusicBrainz
         musicbrainzngs.set_useragent(
-            "CachaTuMusica",
+            "TuneaTuMusica",
             "1.0",
             "contact@example.com"
         )
@@ -1126,7 +1126,7 @@ Ejemplos:
 
         # Limpiar reportes antiguos si se solicitó
         if getattr(args, 'clean_reports', False):
-            patterns = ['reporte*.md', 'reporte*.csv', 'log_*.csv', 'reporte_*_cachatumusica*.csv']
+            patterns = ['reporte*.md', 'reporte*.csv', 'log_*.csv', 'reporte_*_tuneatumusica*.csv']
             removed = 0
             for p in patterns:
                 for f in logs_dir.glob(p):

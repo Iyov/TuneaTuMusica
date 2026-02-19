@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CachaTuMusica - Edición Pro (GUI)
+TuneaTuMusica - Edición Pro (GUI)
 =================================
 
 Aplicación de escritorio moderna para actualización de metadatos musicales.
@@ -47,12 +47,12 @@ ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
 
-class CachaTuMusicaGUI:
-    """Interfaz gráfica principal de CachaTuMusica"""
+class TuneaTuMusicaGUI:
+    """Interfaz gráfica principal de TuneaTuMusica"""
     
     def __init__(self):
         self.root = ctk.CTk()
-        self.root.title("CachaTuMusica - Edición Pro")
+        self.root.title("TuneaTuMusica - Edición Pro")
         self.root.geometry("900x750")
         self.root.minsize(850, 700)
         
@@ -103,7 +103,7 @@ class CachaTuMusicaGUI:
         
         # Configurar MusicBrainz
         musicbrainzngs.set_useragent(
-            "CachaTuMusica",
+            "TuneaTuMusica",
             "1.0",
             "contact@example.com"
         )
@@ -123,7 +123,7 @@ class CachaTuMusicaGUI:
         # Título
         self.titulo = ctk.CTkLabel(
             self.header_frame,
-            text="CachaTuMusica",
+            text="TuneaTuMusica",
             font=ctk.CTkFont(size=32, weight="bold"),
             text_color="#3498db"
         )
@@ -141,7 +141,7 @@ class CachaTuMusicaGUI:
         # Mensaje de bienvenida
         self.welcome_label = ctk.CTkLabel(
             self.header_frame,
-            text="CachaTuMusica: Dejando tus archivos más ordenados que formación de parada militar. ¡Vamos por esa biblioteca impecable!",
+            text="TuneaTuMusica: Dejando tus archivos más ordenados que formación de parada militar. ¡Vamos por esa biblioteca impecable!",
             font=ctk.CTkFont(size=12, slant="italic"),
             text_color="#2ecc71"
         )
@@ -333,7 +333,7 @@ class CachaTuMusicaGUI:
     def _mostrar_bienvenida(self):
         """Muestra mensaje de bienvenida en el log"""
         self._log("=" * 60, "info")
-        self._log("🎵 Bienvenido a CachaTuMusica - Edición Pro", "info")
+        self._log("🎵 Bienvenido a TuneaTuMusica - Edición Pro", "info")
         self._log("=" * 60, "info")
         self._log("", "info")
         self._log("✨ Funcionalidades:", "info")
@@ -621,7 +621,7 @@ class CachaTuMusicaGUI:
 
 def main():
     """Punto de entrada principal"""
-    app = CachaTuMusicaGUI()
+    app = TuneaTuMusicaGUI()
     app.run()
 
 

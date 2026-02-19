@@ -1,8 +1,8 @@
 /**
- * CachaTuMusica — Premium Interactions
+ * TuneaTuMusica — Premium Interactions
  */
 
-console.log('✨ CachaTuMusica Edición Pro — Web cargada correctamente');
+console.log('✨ TuneaTuMusica Edición Pro — Web cargada correctamente');
 
 // Función para copiar al portapapeles
 function copyToClipboard(id) {
