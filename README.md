@@ -1,17 +1,17 @@
-# TuneaTuMusica 🎵 — Edición Pro
+# TuneaTuMusica 🎵
 
-**TuneaTuMusica** es una solución profesional para la organización y optimización de metadatos de bibliotecas musicales. Diseñada para transformar el caos en orden, esta suite combina extracción inteligente basada en rutas, identificación acústica (AcoustID) y potencia de IA (GPT-4) para garantizar que cada canción esté perfectamente etiquetada y nombrada.
+**TuneaTuMusica** es la solución definitiva para acabar con el caos de los nombres de archivos genéricos en tu biblioteca musical. ¿Cansado de ver `Track 01.mp3` o `descarga_final_12.mp3`? Esta suite combina extracción inteligente, identificación acústica e IA para **renombrar y etiquetar** tus canciones de forma impecable.
 
->  **Edición Pro**: Máxima precisión, automatización refinada y seguridad total.
+>  **TuneaTuMusica**: Máxima precisión, automatización refinada y seguridad total.
 
 ---
 
-## ✨ Características Premium
+## ✨ Características Principales
 
 ![Interfaz Gráfica de TuneaTuMusica](img/TuneaTuMusica_GUI.png)
 
-- 🖥️ **Interfaz Vanguardista**: UI optimizada con **CustomTkinter**, diseñada para la eficiencia.
-- 🧹 **Edición Ordenaito**: Renombrado automático bajo el estándar estricto `NN - Artista - Título.ext`.
+- 🖥️ **Interfaz Vanguardista**: UI intuitiva diseñada para visualizar y corregir nombres masivamente.
+- 🧹 **Legibilidad Total**: Renombrado automático bajo el estándar estricto `NN - Artista - Título.ext`.
 - 🔍 **Prevalidación Diagnóstica**: Escaneo profundo que predice cada cambio antes de que ocurra.
 - 🎯 **Audio Fingerprinting**: Tecnología AcoustID para identificación sin errores.
 - 🤖 **IA Fallback Engine**: GPT-4o-mini para resolver metadatos desde contextos complejos si el fingerprint falla.
@@ -21,7 +21,7 @@
 
 ---
 
-## 📁 Inteligencia de Rutas (Edición Ordenaito)
+## 📁 Inteligencia de Rutas
 
 La lógica de extracción ha sido refinada para interpretar tu estructura de carpetas de forma humana:
 
