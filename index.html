@@ -71,15 +71,11 @@
 
     <section class="box">
       <h2>Publicar en GitHub Pages</h2>
-      <p>Paso rápido para publicar la documentación:</p>
-      <pre><code>git checkout -b gh-pages
-mkdir -p public
-# (ya existe public/index.html)
-git add public/index.html public/style.css public/main.js
-git commit -m "docs: añadir index.html para GitHub Pages"
-git push origin gh-pages
-# Luego habilita GitHub Pages desde la rama gh-pages en la configuración del repo
-</code></pre>
+      <p>Al tener el <code>index.html</code> en la raíz del repositorio, la publicación es directa:</p>
+      <pre><code>git add index.html css/ js/
+git commit -m "docs: actualizar index.html en la raíz"
+git push origin main</code></pre>
+      <p>En la configuración de GitHub Pages (Settings > Pages), asegúrate de que la fuente sea la rama <code>main</code> y la carpeta <code>/ (root)</code>.</p>
     </section>
 
     <section class="box">
