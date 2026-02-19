@@ -8,6 +8,8 @@
 
 ## ✨ Características Premium
 
+![Interfaz Gráfica de CachaTuMusica](img/CachaTuMusica_GUI.png)
+
 - 🖥️ **Interfaz Vanguardista**: UI optimizada con **CustomTkinter**, diseñada para la eficiencia.
 - 🧹 **Edición Ordenaito**: Renombrado automático bajo el estándar estricto `NN - Artista - Título.ext`.
 - 🔍 **Prevalidación Diagnóstica**: Escaneo profundo que predice cada cambio antes de que ocurra.
@@ -32,16 +34,28 @@ La lógica de extracción ha sido refinada para interpretar tu estructura de car
 
 ---
 
-## 📊 Matriz de Clasificación (Casos A-D)
+## 📊 La Inteligencia Detrás: Los 4 Casos de Clasificación
 
-El motor centralizado en `audio_tagger.py` opera bajo un sistema de 4 estados:
+CachaTuMusica no "adivina", aplica lógica de ingeniería para resolver el estado de cada archivo. Aquí explicamos cómo decide qué hacer:
 
-| Caso | Diagnóstico | Acción del Motor |
-| :--- | :--- | :--- |
-| **Caso A** | Nombre/Ruta válidos pero Tags incompletos. | **Escribe Tags**: Sincroniza la info del disco con los metadatos internos. |
-| **Caso B** | Tags válidos pero Nombre inconsistente. | **Renombra Archivo**: Aplica el patrón `NN - Artista - Título` al disco. |
-| **Caso C** | Identidad desconocida (Nombre genérico y sin Tags). | **Lookup Externo**: Activa Fingerprinting o IA para descubrir la identidad. |
-| **Caso D** | Archivo en estado perfecto. | **Verificación**: Solo valida consistencia y emite reporte de éxito. |
+### 🟢 Caso A: "La Carpeta manda"
+*   **Diagnóstico**: El nombre del archivo o su ubicación son perfectos, pero los "Tags" internos están vacíos o dicen "Desconocido".
+    - *Ejemplo*: `Caliban/(2006) The Undying Darkness/01 - Intro.mp3` (pero el archivo por dentro no tiene info).
+*   **Acción**: El motor extrae la info de la ruta y **escribe los Tags** internos.
+
+### 🔵 Caso B: "Los Tags mandan"
+*   **Diagnóstico**: El archivo tiene los metadatos internos (Artista, Título) correctos, pero el nombre del archivo es un desastre.
+    - *Ejemplo*: `asdf_123_descarga.mp3` (pero al abrirlo dice "Metallica - Enter Sandman").
+*   **Acción**: El motor usa los Tags para **renombrar el archivo** al estándar: `01 - Metallica - Enter Sandman.mp3`.
+
+### 🟡 Caso C: "Búsqueda de Identidad" (Fingerprinting/IA)
+*   **Diagnóstico**: Ni el nombre del archivo ni los Tags internos sirven. El archivo es un completo desconocido.
+    - *Ejemplo*: `track01.mp3` y sin metadatos.
+*   **Acción**: El motor "escucha" el audio (**AcoustID**) o le pregunta a la **IA** para descubrir quién es, y luego **arregla tanto Tags como Nombre**.
+
+### ⚪ Caso D: "Estado Perfecto"
+*   **Diagnóstico**: El nombre está ordenado y los Tags coinciden perfectamente.
+*   **Acción**: No hace nada. Solo te informa que el archivo está **100% Correcto**. ¡Misión cumplida!
 
 ---
 
