@@ -1,4 +1,4 @@
-# <img src="img/TuneaTuMusica_Logo.png" width="40" height="40" valign="middle"> TuneaTuMusica 🎵
+# <img src="img/TuneaTuMusica_Logo_SF.png" width="40" height="40" valign="middle"> TuneaTuMusica 🎵
 
 **TuneaTuMusica** es la solución definitiva para acabar con el caos de los nombres de archivos genéricos en tu biblioteca musical. ¿Cansado de ver `Track 01.mp3` o `descarga_final_12.mp3`? Esta suite combina extracción inteligente, identificación acústica e IA para **renombrar y etiquetar** tus canciones de forma impecable.
 

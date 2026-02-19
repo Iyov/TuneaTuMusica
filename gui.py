@@ -127,7 +127,7 @@ class TuneaTuMusicaGUI:
 
         # Logo
         try:
-            logo_path = os.path.join("img", "TuneaTuMusica_Logo.png")
+            logo_path = os.path.join("img", "TuneaTuMusica_Logo_SF.png")
             if os.path.exists(logo_path):
                 # Reducimos un poco más el tamaño para optimizar espacio
                 logo_img = ctk.CTkImage(light_image=Image.open(logo_path),

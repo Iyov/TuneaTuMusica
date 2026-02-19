@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TuneaTuMusica Web — No-Install Edition</title>
+  <meta name="description" content="Organiza tu biblioteca musical directamente desde el navegador. Sin instalación, 100% privado y local.">
+  <meta name="keywords" content="tunea tu musica, web edition, mp3 tagger, flac tagger, sin instalacion, privacidad musical">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="TuneaTuMusica Web — No-Install Edition">
+  <meta property="og:description" content="Limpia y organiza tu música localmente en el navegador con total privacidad.">
+  <meta property="og:image" content="img/TuneaTuMusica_Logo_SF.png">
+  <meta property="og:url" content="https://iyov.github.io/TuneaTuMusica/web.html">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/music-metadata-browser@2.5.11/dist/index.js"></script>
+  <script src="https://unpkg.com/browser-id3-writer@6.3.1/dist/browser-id3-writer.mjs" type="module"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+    }
+    .glass-button {
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      transition: all 0.3s ease;
+    }
+    .glass-button:hover:not(:disabled) {
+      background: rgba(99, 102, 241, 0.3);
+      border-color: rgba(99, 102, 241, 0.5);
+      transform: translateY(-1px);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+  <div class="max-w-6xl mx-auto space-y-8">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="flex items-center gap-6">
+        <img src="img/TuneaTuMusica_Logo_SF.png" alt="Logo" class="w-32 h-auto" />
+        <div class="text-center md:text-left">
+          <h1 class="text-4xl font-bold text-white tracking-tight">TuneaTuMusica <span class="text-indigo-400">Web</span></h1>
+          <p class="text-slate-400 font-medium">Edición Sin Instalación • Privacidad Local</p>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <a href="index.html" class="glass-button px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+          ← Volver al Inicio
+        </a>
+        <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest flex items-center">
+          v1.0.0
+        </span>
+      </div>
+    </header>
+
+    <div class="grid lg:grid-cols-12 gap-8">
+      <!-- Controls -->
+      <div class="lg:col-span-4 space-y-6">
+        <section class="glass-card p-6 space-y-6">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path></svg>
+            </div>
+            <h2 class="text-xl font-bold text-white">Biblioteca</h2>
+          </div>
+          <p class="text-slate-400 text-sm">Selecciona la carpeta donde tienes tu música. No se subirá nada a internet.</p>
+          <button id="btnSelect" class="w-full glass-button py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 text-indigo-300">
+            Seleccionar Carpeta
+          </button>
+          <div id="folderInfo" class="hidden bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl flex items-center gap-3">
+            <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Carpeta Activa</span>
+              <span id="folderName" class="text-sm font-semibold text-slate-200 truncate max-w-[150px]">Nombre</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass-card p-6 space-y-4">
+          <div class="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-500">
+            <span>Progreso</span>
+            <span id="progressText">0%</span>
+          </div>
+          <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+            <div id="progressBar" class="h-full bg-indigo-500 w-0 transition-all duration-300"></div>
+          </div>
+          <button id="btnProcess" disabled class="w-full glass-button py-3 rounded-xl font-bold text-indigo-300 disabled:opacity-30 disabled:cursor-not-allowed">
+            Tunea Tu Música
+          </button>
+        </section>
+      </div>
+
+      <!-- Log -->
+      <div class="lg:col-span-8 flex flex-col h-[500px]">
+        <div class="glass-card flex-1 flex flex-col overflow-hidden">
+          <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+            <h2 class="text-sm font-bold uppercase tracking-widest text-slate-400">Monitor de Actividad</h2>
+            <div id="stats" class="text-xs font-bold space-x-4">
+              <span class="text-emerald-400"><span id="countUpdated">0</span> OK</span>
+              <span class="text-red-400"><span id="countError">0</span> Err</span>
+            </div>
+          </div>
+          <div id="logContent" class="p-4 flex-1 overflow-y-auto font-mono text-xs space-y-1 custom-scrollbar">
+            <div class="text-slate-500 italic opacity-50">Esperando acción...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import ID3Writer from 'https://unpkg.com/browser-id3-writer@6.3.1/dist/browser-id3-writer.mjs';
+
+    let directoryHandle = null;
+    let files = [];
+    const btnSelect = document.getElementById('btnSelect');
+    const btnProcess = document.getElementById('btnProcess');
+    const logContent = document.getElementById('logContent');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const countUpdated = document.getElementById('countUpdated');
+    const countError = document.getElementById('countError');
+
+    const log = (msg, type = 'info') => {
+      const div = document.createElement('div');
+      div.className = `p-2 rounded border-l-2 bg-white/5 ${type === 'success' ? 'border-emerald-500 text-emerald-400' : type === 'error' ? 'border-red-500 text-red-500' : 'border-slate-500 text-slate-400'}`;
+      div.innerHTML = `<span class="opacity-50">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
+      logContent.prepend(div);
+    };
+
+    btnSelect.onclick = async () => {
+      try {
+        directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        document.getElementById('folderInfo').classList.remove('hidden');
+        document.getElementById('folderName').innerText = directoryHandle.name;
+        
+        files = [];
+        for await (const entry of directoryHandle.values()) {
+          if (entry.kind === 'file' && /\.(mp3|flac)$/i.test(entry.name)) {
+            files.push(entry);
+          }
+        }
+        
+        btnProcess.disabled = files.length === 0;
+        log(`📁 Carpeta: ${directoryHandle.name} (${files.length} archivos)`, 'success');
+      } catch (err) {
+        if (err.name !== 'AbortError') log(err.message, 'error');
+      }
+    };
+
+    const toTitleCase = (str) => str ? str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : '';
+
+    btnProcess.onclick = async () => {
+      btnProcess.disabled = true;
+      btnSelect.disabled = true;
+      let okCount = 0;
+      let errCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const handle = files[i];
+        try {
+          const file = await handle.getFile();
+          const metadata = await musicMetadata.parseBlob(file);
+          
+          let artist = metadata.common.artist || '';
+          let track = metadata.common.track.no || 0;
+          let title = metadata.common.title || '';
+          let caso = 'D';
+
+          if (artist && title) {
+            caso = 'B';
+          } else {
+            const match = handle.name.match(/^(?:(\d+)\s*-\s*)?(.+)\.(?:mp3|flac)$/i);
+            if (match) {
+              track = track || parseInt(match[1]) || 0;
+              title = title || match[2];
+              caso = 'A';
+            } else {
+              caso = 'C';
+            }
+          }
+
+          const f_artist = toTitleCase(artist || 'Desconocido');
+          const f_title = toTitleCase(title || handle.name);
+
+          if (handle.name.toLowerCase().endsWith('.mp3')) {
+            const buffer = await file.arrayBuffer();
+            const writer = new ID3Writer(buffer);
+            writer.setFrame('TPE1', [f_artist]).setFrame('TIT2', f_title).setFrame('TCON', ['Metal']);
+            writer.addTag();
+            
+            const writable = await handle.createWritable();
+            await writable.write(writer.arrayBuffer);
+            await writable.close();
+            log(`✅ [Caso ${caso}] Actualizado: ${f_artist} - ${f_title}`, 'success');
+          } else {
+            log(`⚠️ [Caso ${caso}] ${handle.name}: Lectura OK`, 'info');
+          }
+          
+          okCount++;
+          countUpdated.innerText = okCount;
+        } catch (err) {
+          log(`❌ Error en ${handle.name}: ${err.message}`, 'error');
+          errCount++;
+          countError.innerText = errCount;
+        }
+        const pct = Math.round(((i + 1) / files.length) * 100);
+        progressBar.style.width = `${pct}%`;
+        progressText.innerText = `${pct}%`;
+      }
+
+      btnProcess.disabled = false;
+      btnSelect.disabled = false;
+      log('✨ ¡Tuning completado!', 'success');
+    };
+  </script>
+</body>
+</html>
