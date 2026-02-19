@@ -163,7 +163,7 @@ class TuneaTuMusicaGUI:
         # Mensaje de bienvenida (Slogan)
         self.welcome_label = ctk.CTkLabel(
             self.info_frame,
-            text="TuneaTuMusica: Dejando tus archivos más ordenados que formación de parada militar. ¡Vamos por esa biblioteca impecable!",
+            text="Dejando tus archivos más ordenados. ¡Vamos por esa biblioteca impecable!",
             font=ctk.CTkFont(size=12, slant="italic"),
             text_color="#27ae60"
         )
@@ -288,10 +288,11 @@ class TuneaTuMusicaGUI:
         self.start_btn = ctk.CTkButton(
             self.buttons_frame,
             text="Tunea Tu Música",
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=ctk.CTkFont(size=14),
             height=45,
             fg_color="#2ecc71",
             hover_color="#27ae60",
+            text_color="#ffffff",
             command=self._iniciar_proceso
         )
         self.start_btn.pack(side="left", expand=True, fill="both", padx=(0, 5))
@@ -304,17 +305,16 @@ class TuneaTuMusicaGUI:
             height=45,
             fg_color="#f1c40f",
             hover_color="#f39c12",
+            text_color="#000000",
             command=self._run_sandbox_tests
         )
         self.diagnostico_btn.pack(side="left", expand=True, fill="both", padx=(5, 5))
-
+ 
         self.open_report_btn = ctk.CTkButton(
             self.buttons_frame,
             text="Ver Informe",
             font=ctk.CTkFont(size=14),
             height=45,
-            fg_color="#3498db",
-            hover_color="#2980b9",
             state="disabled",
             command=self._abrir_reporte
         )
