@@ -57,6 +57,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 # Géneros estandarizados
 GENEROS_ESTANDARIZADOS = {
     'rock': 'Rock',
@@ -143,6 +144,7 @@ class ResultadoActualizacion:
     datos_previos: AudioTags
     datos_nuevos: AudioTags
     fuente: str  # 'MusicBrainz', 'IA', 'N/A'
+    caso: str = ""  # 'A'|'B'|'C'|'D' u otro
     mensaje: str = ""
 
 
@@ -248,12 +250,11 @@ class IATagger:
                     year='2021',
                     genre='Rock'
                 )
-            # Implementación básica usando OpenAI
+            # Implementación básica usando OpenAI (compatible con openai>=1.0.0 y versiones antiguas)
             import openai
-            openai.api_key = self.api_key
-            
+
             prompt = f"""Analiza este nombre de archivo de audio e intenta inferir los metadatos musicales.
-            
+
 Archivo: {nombre_archivo}
 Metadatos actuales (pueden estar vacíos):
 - Título: {tags_actuales.title or 'Desconocido'}
@@ -274,18 +275,53 @@ Responde SOLO en formato JSON con esta estructura exacta:
 
 Si no puedes determinar algún campo, usa null.
 """
-            
-            response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "Eres un experto en metadatos musicales. Analiza nombres de archivos de audio y extrae información precisa."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=300
-            )
-            
-            contenido = response.choices[0].message.content.strip()
+
+            try:
+                # Nueva interfaz (openai>=1.0.0)
+                if hasattr(openai, 'OpenAI'):
+                    client = openai.OpenAI(api_key=self.api_key)
+                    # En la nueva interfaz, usar chat.completions.create
+                    try:
+                        resp = client.chat.completions.create(
+                            model="gpt-4o-mini",
+                            messages=[
+                                {"role": "system", "content": "Eres un experto en metadatos musicales. Analiza nombres de archivos de audio y extrae información precisa."},
+                                {"role": "user", "content": prompt}
+                            ],
+                            temperature=0.3,
+                            max_tokens=300
+                        )
+                    except Exception:
+                        # Alternativa: usar responses API como fallback
+                        resp = client.responses.create(
+                            model="gpt-4o-mini",
+                            input=prompt,
+                            temperature=0.3,
+                            max_output_tokens=300
+                        )
+                    # Extraer posible contenido de varias formas
+                    try:
+                        contenido = resp.choices[0].message.content.strip()
+                    except Exception:
+                        try:
+                            contenido = resp.choices[0].message['content'].strip()
+                        except Exception:
+                            contenido = str(resp)
+                else:
+                    # Interfaz antigua
+                    openai.api_key = self.api_key
+                    response = openai.ChatCompletion.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {"role": "system", "content": "Eres un experto en metadatos musicales. Analiza nombres de archivos de audio y extrae información precisa."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=0.3,
+                        max_tokens=300
+                    )
+                    contenido = response.choices[0].message.content.strip()
+            except Exception as e:
+                raise
             
             # Extraer JSON de la respuesta
             if '```json' in contenido:
@@ -329,6 +365,7 @@ class AudioTagger:
         self.config = config
         self.backup_manager: Optional[BackupManager] = None
         self.hacer_backup = backup
+        self.dry_run: bool = False
         self.ia_tagger = IATagger(config.openai_api_key, config.ia_enabled)
         self.resultados: List[ResultadoActualizacion] = []
     
@@ -496,10 +533,74 @@ class AudioTagger:
         
         genero_lower = genero.lower()
         return GENEROS_ESTANDARIZADOS.get(genero_lower, genero.title())
+
+    def _parse_path_info(self, archivo: Path, directorio_raiz: Path) -> Tuple[AudioTags, Dict[str, Optional[str]]]:
+        """Extrae información basada en la ruta y el nombre de archivo siguiendo las reglas:
+        - Banda: Dos carpetas anteriores (N-2)
+        - Disco/Año: Carpeta anterior (N-1) con formato (Año) Nombre
+        
+        Retorna (AudioTags_derived, metadata_dict)
+        """
+        metadata = {
+            'artist_dir': None,
+            'album_dir': None,
+            'year_dir': None,
+            'track_from_name': None,
+            'title_from_name': None,
+            'ext': archivo.suffix.lstrip('.')
+        }
+
+        try:
+            # Estructura requerida: .../Banda/(Año) Disco/archivo.mp3
+            # Padre (N-1): (Año) Disco
+            parent_dir = archivo.parent.name
+            
+            # Regex para (YYYY) Album
+            import re
+            m_album = re.match(r'^\((\d{4})\)\s*(.+)$', parent_dir)
+            if m_album:
+                metadata['year_dir'] = m_album.group(1)
+                metadata['album_dir'] = m_album.group(2).strip()
+            else:
+                metadata['album_dir'] = parent_dir
+
+            # Abuelo (N-2): Banda
+            try:
+                metadata['artist_dir'] = archivo.parent.parent.name
+            except Exception:
+                pass
+
+            # Nombre de archivo: NN - Título o variaciones
+            name = archivo.stem
+            # Patrones comunes: 02-Title, 02 - Title, 02_Title, 02. Title
+            m_name = re.match(r'^\s*(?P<track>\d{1,2})\s*[-_.\s]*\s*(?P<title>.+)$', name)
+            if m_name:
+                metadata['track_from_name'] = m_name.group('track').zfill(2)
+                metadata['title_from_name'] = m_name.group('title').replace('_', ' ').strip()
+            else:
+                metadata['title_from_name'] = name.replace('_', ' ').strip()
+
+        except Exception as e:
+            logger.debug(f"Error parseando ruta {archivo}: {e}")
+
+        derived = AudioTags(
+            title=metadata.get('title_from_name'),
+            artist=metadata.get('artist_dir'),
+            album=metadata.get('album_dir'),
+            year=metadata.get('year_dir'),
+            genre='Metal', # Género por defecto según requerimiento
+            track=metadata.get('track_from_name')
+        )
+
+        return derived, metadata
     
     def escribir_tags(self, archivo: Path, tags: AudioTags) -> bool:
         """Escribe los tags en el archivo de audio"""
         try:
+            # Si estamos en modo dry-run, no escribir, solo simular éxito
+            if getattr(self, 'dry_run', False):
+                logger.info(f"DRY-RUN: simulando escritura de tags en {archivo} -> {tags.to_dict()}")
+                return True
             audio = File(archivo)
             if audio is None:
                 return False
@@ -520,8 +621,10 @@ class AudioTagger:
                     id3['TALB'] = TALB(encoding=3, text=tags.album)
                 if tags.year:
                     id3['TDRC'] = TDRC(encoding=3, text=tags.year)
-                if tags.genre:
-                    id3['TCON'] = TCON(encoding=3, text=tags.genre)
+                # Si no hay género, usar 'Metal' por defecto según requerimiento
+                genre_value = tags.genre or 'Metal'
+                if genre_value:
+                    id3['TCON'] = TCON(encoding=3, text=genre_value)
                 
                 id3.save(archivo)
             
@@ -535,8 +638,7 @@ class AudioTagger:
                     audio['ALBUM'] = tags.album
                 if tags.year:
                     audio['DATE'] = tags.year
-                if tags.genre:
-                    audio['GENRE'] = tags.genre
+                audio['GENRE'] = tags.genre or 'Metal'
                 
                 audio.save()
             
@@ -551,8 +653,7 @@ class AudioTagger:
                         audio.tags['album'] = tags.album
                     if tags.year:
                         audio.tags['date'] = tags.year
-                    if tags.genre:
-                        audio.tags['genre'] = tags.genre
+                    audio.tags['genre'] = tags.genre or 'Metal'
                     
                     audio.save()
             
@@ -563,65 +664,175 @@ class AudioTagger:
             return False
     
     def procesar_archivo(self, archivo: Path, directorio_raiz: Path) -> ResultadoActualizacion:
-        """Procesa un único archivo de audio"""
+        """Procesa un único archivo de audio basándose en los Casos A-D"""
         # Leer tags actuales
         tags_previos = self.leer_tags_actuales(archivo)
-        
+
         # Crear backup si es necesario
         if self.hacer_backup:
             if self.backup_manager is None:
                 self.backup_manager = BackupManager(directorio_raiz)
             self.backup_manager.crear_backup(archivo)
-        
-        # Intentar identificación por fingerprinting
-        datos_identificados = self.identificar_con_fingerprint(archivo)
-        fuente = "MusicBrainz"
-        
-        # Si no se identificó, intentar con IA
-        if datos_identificados is None and self.ia_tagger.enabled:
-            datos_ia = self.ia_tagger.inferir_desde_nombre(archivo.name, tags_previos)
-            if datos_ia:
-                datos_identificados = datos_ia.to_dict()
-                fuente = "IA"
-        
-        # Si no se pudo identificar
-        if datos_identificados is None:
+
+        # Extraer info desde la ruta/nombre
+        derived, meta = self._parse_path_info(archivo, directorio_raiz)
+
+        def es_valido(v: Optional[str]) -> bool:
+            if not v:
+                return False
+            lv = v.lower().strip()
+            return lv not in ['', 'unknown', 'untitled', 'track', 'artista desconocido', 'desconocido']
+
+        def es_title_generico(t: Optional[str]) -> bool:
+            if not t:
+                return True
+            import re
+            tt = t.strip().lower()
+            if tt in ['', 'unknown', 'untitled'] or re.match(r'^track\s*[-_.\s]*\d+$', tt):
+                return True
+            return False
+
+        # Criterios para los casos
+        filename_has_info = es_valido(derived.title) and es_valido(derived.artist)
+        tags_have_info = not es_title_generico(tags_previos.title) and es_valido(tags_previos.artist)
+
+        # Caso D: SI datos en archivo y SI en tags -> NO TOCAR
+        if filename_has_info and tags_have_info:
             return ResultadoActualizacion(
                 archivo=str(archivo),
-                estado="No encontrado",
+                estado="Sin cambios",
                 datos_previos=tags_previos,
-                datos_nuevos=AudioTags(),
+                datos_nuevos=tags_previos,
                 fuente="N/A",
-                mensaje="No se pudo identificar el archivo"
+                caso='D',
+                mensaje='Archivo ya bien configurado'
             )
-        
-        # Crear nuevos tags
-        nuevos_tags = AudioTags(
-            title=datos_identificados.get('title', tags_previos.title),
-            artist=datos_identificados.get('artist', tags_previos.artist),
-            album=datos_identificados.get('album', tags_previos.album),
-            year=datos_identificados.get('year', tags_previos.year),
-            genre=self.estandarizar_genero(datos_identificados.get('genre')) or tags_previos.genre
+
+        # Caso A: SI info en nombre/ruta, NO info en tags -> ACTUALIZAR TAGS
+        if filename_has_info and not tags_have_info:
+            nuevos = AudioTags(
+                title=derived.title,
+                artist=derived.artist,
+                album=derived.album,
+                year=derived.year,
+                genre='Metal',
+                track=derived.track
+            )
+            ok = self.escribir_tags(archivo, nuevos)
+            return ResultadoActualizacion(
+                archivo=str(archivo),
+                estado="Actualizado" if ok else "Error",
+                datos_previos=tags_previos,
+                datos_nuevos=nuevos if ok else tags_previos,
+                fuente='Ruta/Nombre',
+                caso='A',
+                mensaje='Tags actualizados desde estructura de carpetas'
+            )
+
+        # Caso B: NO info válida en nombre, SI info en tags -> RENOMBRAR ARCHIVO
+        if not filename_has_info and tags_have_info:
+            pista = (tags_previos.track or meta.get('track_from_name') or '').zfill(2)
+            titulo = tags_previos.title
+            ext = archivo.suffix
+            
+            def sanitize(name: str) -> str:
+                import re
+                return re.sub(r'[\\/:*?"<>|]', '', name).strip()
+
+            nuevo_nombre = f"{pista} - {sanitize(titulo)}{ext}" if pista else f"{sanitize(titulo)}{ext}"
+            nuevo_path = archivo.with_name(nuevo_nombre)
+            
+            try:
+                if not getattr(self, 'dry_run', False):
+                    archivo.rename(nuevo_path)
+                return ResultadoActualizacion(
+                    archivo=str(nuevo_path),
+                    estado="Actualizado",
+                    datos_previos=tags_previos,
+                    datos_nuevos=tags_previos,
+                    fuente='Tags',
+                    caso='B',
+                    mensaje=f"Renombrado a: {nuevo_nombre}"
+                )
+            except Exception as e:
+                return ResultadoActualizacion(
+                    archivo=str(archivo),
+                    estado="Error",
+                    datos_previos=tags_previos,
+                    datos_nuevos=tags_previos,
+                    fuente='Tags',
+                    caso='B',
+                    mensaje=f"Error renombrando: {e}"
+                )
+
+        # Caso C: NO info en nombre y NO info en tags -> FINGERPRINT / IA
+        if not filename_has_info and not tags_have_info:
+            fuente = 'Internet'
+            datos_identificados = self.identificar_con_fingerprint(archivo)
+            
+            if not datos_identificados and self.ia_tagger.enabled:
+                fuente = 'IA'
+                datos_ia = self.ia_tagger.inferir_desde_nombre(archivo.name, tags_previos)
+                if datos_ia:
+                    datos_identificados = datos_ia.to_dict()
+
+            if datos_identificados:
+                nuevos = AudioTags(
+                    title=datos_identificados.get('title'),
+                    artist=datos_identificados.get('artist') or derived.artist,
+                    album=datos_identificados.get('album') or derived.album,
+                    year=datos_identificados.get('year') or derived.year,
+                    genre='Metal',
+                    track=datos_identificados.get('track') or derived.track
+                )
+                
+                # Escribir tags
+                ok = self.escribir_tags(archivo, nuevos)
+                
+                # Renombrar si es posible
+                pista = (nuevos.track or meta.get('track_from_name') or '').zfill(2)
+                titulo = nuevos.title
+                def sanitize(name: str) -> str:
+                    import re
+                    return re.sub(r'[\\/:*?"<>|]', '', name).strip()
+                
+                if titulo:
+                    nuevo_nombre = f"{pista} - {sanitize(titulo)}{archivo.suffix}" if pista else f"{sanitize(titulo)}{archivo.suffix}"
+                    nuevo_path = archivo.with_name(nuevo_nombre)
+                    try:
+                        if not getattr(self, 'dry_run', False) and ok:
+                            archivo.rename(nuevo_path)
+                            return ResultadoActualizacion(
+                                archivo=str(nuevo_path),
+                                estado="Actualizado",
+                                datos_previos=tags_previos,
+                                datos_nuevos=nuevos,
+                                fuente=fuente,
+                                caso='C',
+                                mensaje=f"Identificado vía {fuente} y renombrado"
+                            )
+                    except Exception:
+                        pass
+
+                return ResultadoActualizacion(
+                    archivo=str(archivo),
+                    estado="Actualizado" if ok else "No encontrado",
+                    datos_previos=tags_previos,
+                    datos_nuevos=nuevos if ok else tags_previos,
+                    fuente=fuente if ok else 'N/A',
+                    caso='C',
+                    mensaje='Identificado vía ' + fuente if ok else 'No se pudo identificar'
+                )
+
+        return ResultadoActualizacion(
+            archivo=str(archivo),
+            estado="No identificado",
+            datos_previos=tags_previos,
+            datos_nuevos=tags_previos,
+            fuente="N/A",
+            caso="Desconocido",
+            mensaje="No encaja en casos A-D"
         )
-        
-        # Escribir tags
-        if self.escribir_tags(archivo, nuevos_tags):
-            return ResultadoActualizacion(
-                archivo=str(archivo),
-                estado="Actualizado",
-                datos_previos=tags_previos,
-                datos_nuevos=nuevos_tags,
-                fuente=fuente
-            )
-        else:
-            return ResultadoActualizacion(
-                archivo=str(archivo),
-                estado="Error",
-                datos_previos=tags_previos,
-                datos_nuevos=nuevos_tags,
-                fuente=fuente,
-                mensaje="Error al escribir tags"
-            )
     
     def procesar_directorio(self, directorio: str, max_workers: int = 4):
         """Procesa todos los archivos de audio en un directorio"""
@@ -651,9 +862,15 @@ class AudioTagger:
     
     def generar_reporte_csv(self, archivo_salida: str = "log_actualizacion.csv"):
         """Genera reporte en formato CSV"""
-        with open(archivo_salida, 'w', newline='', encoding='utf-8') as f:
+        # Asegurar que el directorio de salida exista
+        out_path = Path(archivo_salida)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Usar 'utf-8-sig' para incluir BOM y mejorar compatibilidad con Excel en Windows
+        with open(out_path, 'w', newline='', encoding='utf-8-sig') as f:
             fieldnames = [
                 'archivo', 'estado', 'fuente',
+                'caso',
                 'titulo_previo', 'artista_previo', 'album_previo', 'año_previo', 'genero_previo',
                 'titulo_nuevo', 'artista_nuevo', 'album_nuevo', 'año_nuevo', 'genero_nuevo',
                 'mensaje'
@@ -662,29 +879,37 @@ class AudioTagger:
             writer.writeheader()
             
             for resultado in self.resultados:
+                # Asegurar que no haya valores None para evitar problemas de encoding/CSV
+                def s(v):
+                    return '' if v is None else str(v)
+
                 row = {
-                    'archivo': resultado.archivo,
-                    'estado': resultado.estado,
-                    'fuente': resultado.fuente,
-                    'titulo_previo': resultado.datos_previos.title,
-                    'artista_previo': resultado.datos_previos.artist,
-                    'album_previo': resultado.datos_previos.album,
-                    'año_previo': resultado.datos_previos.year,
-                    'genero_previo': resultado.datos_previos.genre,
-                    'titulo_nuevo': resultado.datos_nuevos.title,
-                    'artista_nuevo': resultado.datos_nuevos.artist,
-                    'album_nuevo': resultado.datos_nuevos.album,
-                    'año_nuevo': resultado.datos_nuevos.year,
-                    'genero_nuevo': resultado.datos_nuevos.genre,
-                    'mensaje': resultado.mensaje
+                    'archivo': s(resultado.archivo),
+                    'estado': s(resultado.estado),
+                    'fuente': s(resultado.fuente),
+                    'caso': s(resultado.caso),
+                    'titulo_previo': s(resultado.datos_previos.title),
+                    'artista_previo': s(resultado.datos_previos.artist),
+                    'album_previo': s(resultado.datos_previos.album),
+                    'año_previo': s(resultado.datos_previos.year),
+                    'genero_previo': s(resultado.datos_previos.genre),
+                    'titulo_nuevo': s(resultado.datos_nuevos.title),
+                    'artista_nuevo': s(resultado.datos_nuevos.artist),
+                    'album_nuevo': s(resultado.datos_nuevos.album),
+                    'año_nuevo': s(resultado.datos_nuevos.year),
+                    'genero_nuevo': s(resultado.datos_nuevos.genre),
+                    'mensaje': s(resultado.mensaje)
                 }
                 writer.writerow(row)
         
-        logger.info(f"Reporte CSV generado: {archivo_salida}")
+        logger.info(f"Reporte CSV generado: {out_path}")
     
     def generar_reporte_md(self, archivo_salida: str = "reporte.md"):
         """Genera reporte en formato Markdown"""
-        with open(archivo_salida, 'w', encoding='utf-8') as f:
+        out_path = Path(archivo_salida)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(out_path, 'w', encoding='utf-8') as f:
             f.write("# Reporte de Etiquetado de Audio\n\n")
             f.write(f"**Fecha:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
             f.write(f"**Total de archivos procesados:** {len(self.resultados)}\n\n")
@@ -718,6 +943,8 @@ class AudioTagger:
                 f.write(f"- **Ruta:** `{resultado.archivo}`\n")
                 f.write(f"- **Estado:** {resultado.estado}\n")
                 f.write(f"- **Fuente:** {resultado.fuente}\n")
+                if resultado.caso:
+                    f.write(f"- **Caso detectado:** {resultado.caso}\n")
                 
                 if resultado.mensaje:
                     f.write(f"- **Mensaje:** {resultado.mensaje}\n")
@@ -738,7 +965,7 @@ class AudioTagger:
                 
                 f.write("\n---\n\n")
         
-        logger.info(f"Reporte Markdown generado: {archivo_salida}")
+        logger.info(f"Reporte Markdown generado: {out_path}")
 
 
 def main():
@@ -792,6 +1019,30 @@ Ejemplos:
         default='both',
         help='Formato del reporte (por defecto: both)'
     )
+
+    parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Simular cambios sin escribir tags ni renombrar archivos'
+    )
+
+    parser.add_argument(
+        '--out-csv',
+        default='log_actualizacion.csv',
+        help='Nombre del archivo CSV detallado de salida (por defecto: log_actualizacion.csv)'
+    )
+
+    parser.add_argument(
+        '--out-md',
+        default='reporte.md',
+        help='Nombre del archivo Markdown consolidado de salida (por defecto: reporte.md)'
+    )
+
+    parser.add_argument(
+        '--clean-reports',
+        action='store_true',
+        help='Eliminar reportes antiguos antes de generar los nuevos ( conserva los archivos indicados en --out-csv y --out-md )'
+    )
     
     parser.add_argument(
         '--workers', '-w',
@@ -821,6 +1072,27 @@ Ejemplos:
     # Inicializar tagger
     hacer_backup = args.backup and not args.no_backup
     tagger = AudioTagger(config, backup=hacer_backup)
+    # Propagar dry-run al tagger
+    if getattr(args, 'dry_run', False):
+        tagger.dry_run = True
+
+    # Asegurar carpeta de logs y añadir file handler de logging
+    logs_dir = Path('logs')
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        # Crear un handler de fichero con timestamp
+        ts = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        log_file = logs_dir / f"audio_tagger_{ts}.log"
+        fh = logging.FileHandler(str(log_file), encoding='utf-8')
+        fh.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        fh.setFormatter(formatter)
+        # Evitar añadir múltiples handlers si ya existe uno similar
+        if not any(isinstance(h, logging.FileHandler) and getattr(h, 'baseFilename', None) == str(log_file) for h in logger.handlers):
+            logger.addHandler(fh)
+            logger.info(f"Logging to file: {log_file}")
+    except Exception as e:
+        logger.warning(f"No se pudo crear handler de logging en logs/: {e}")
     
     # Restaurar backup si se solicita
     if args.restore:
@@ -837,12 +1109,43 @@ Ejemplos:
     try:
         tagger.procesar_directorio(args.dir, max_workers=args.workers)
         
-        # Generar reportes
+        # Determinar nombres de salida; si el usuario no especificó --out-csv
+        # generamos un nombre con fecha/hora: log_YYYY-MM-DD_hh-mm-ss.csv
+        if getattr(args, 'out_csv', None) is None or args.out_csv == 'log_actualizacion.csv':
+            out_csv_name = f"log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+        else:
+            out_csv_name = args.out_csv
+
+        out_csv = logs_dir / out_csv_name
+        # Generar nombre para MD si no se proporcionó uno explícito
+        if getattr(args, 'out_md', None) is None or args.out_md == 'reporte.md':
+            out_md_name = f"reporte_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.md"
+        else:
+            out_md_name = args.out_md
+        out_md = logs_dir / out_md_name
+
+        # Limpiar reportes antiguos si se solicitó
+        if getattr(args, 'clean_reports', False):
+            patterns = ['reporte*.md', 'reporte*.csv', 'log_*.csv', 'reporte_*_cachatumusica*.csv']
+            removed = 0
+            for p in patterns:
+                for f in logs_dir.glob(p):
+                    try:
+                        # No borrar los archivos destino
+                        if f.resolve() == out_csv.resolve() or f.resolve() == out_md.resolve():
+                            continue
+                        f.unlink()
+                        removed += 1
+                    except Exception:
+                        pass
+            logger.info(f"Se eliminaron {removed} reportes antiguos en logs/ (si existían)")
+
+        # Generar reportes (solo CSV detallado y MD consolidado)
         if args.format in ['csv', 'both']:
-            tagger.generar_reporte_csv()
+            tagger.generar_reporte_csv(archivo_salida=str(out_csv))
         
         if args.format in ['md', 'both']:
-            tagger.generar_reporte_md()
+            tagger.generar_reporte_md(archivo_salida=str(out_md))
         
         logger.info("Proceso completado exitosamente!")
         

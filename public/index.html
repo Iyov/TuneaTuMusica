@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CachaTuMusica — Documentación</title>
+  <link rel="stylesheet" href="css/index.css" />
+  <script src="js/index.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>CachaTuMusica</h1>
+      <div class="meta">Documentación del proyecto — Actualizado: 18 de febrero de 2026</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="box">
+      <h2>Resumen rápido</h2>
+      <p>CachaTuMusica es una herramienta para limpiar y estandarizar metadatos musicales. Detecta y corrige tags desde múltiples fuentes: nombre de archivo, estructura de carpetas, fingerprinting (AcoustID/MusicBrainz) y, como último recurso, IA.</p>
+    </section>
+
+    <section class="box">
+      <h2>Principales cambios incluidos (2026-02-18)</h2>
+      <ul>
+        <li>Integración del motor <code>AudioTagger</code> con la GUI en <code>gui.py</code>: ejecución en hilo, polling de progreso y generación de reportes en <code>logs/</code>.</li>
+        <li>Mejoras en generación de reportes: CSV con <code>utf-8-sig</code> y Markdown opcional.</li>
+        <li>Implementación de los Casos A/B/C/D (reglas para derivar metadatos según nombre/tags/estructura).</li>
+        <li>Cadena de fallback: tags → fingerprint (AcoustID → MusicBrainz) → IA (OpenAI) con soporte de prueba mediante <code>SANDBOX_TEST=1</code>.</li>
+        <li>Nuevas opciones CLI: <code>--dry-run</code>, <code>--no-backup</code>, <code>--format</code>, <code>--workers</code>.</li>
+      </ul>
+    </section>
+
+    <section class="box">
+      <h2>Cómo usar</h2>
+      <h3>CLI</h3>
+      <pre><code>python audio_tagger.py --dir "ruta/a/musica" --workers 4 --dry-run</code></pre>
+      <p>Opciones importantes:</p>
+      <ul>
+        <li><code>--dry-run</code>: simula cambios.</li>
+        <li><code>--no-backup</code>: no crea copias antes de escribir.</li>
+        <li><code>--format csv|md|both</code>: formato del reporte.</li>
+        <li><code>--workers N</code>: cantidad de hilos worker.</li>
+      </ul>
+
+      <h3>GUI</h3>
+      <p>Ejecuta <code>python gui.py</code> para abrir la interfaz gráfica. La GUI ahora lanza el motor en un hilo y actualiza la barra de progreso consultando los resultados del <code>AudioTagger</code>. Al finalizar genera reportes en <code>logs/</code>.</p>
+    </section>
+
+    <section class="box">
+      <h2>Configuración</h2>
+      <p>Editar <code>config.json</code> o usar variables de entorno:</p>
+      <pre><code>{
+  "acoustid_api_key": "TU_KEY",
+  "openai_api_key": "TU_KEY_OPCIONAL",
+  "ia_enabled": true
+}</code></pre>
+      <p>Instala <code>fpcalc</code> (Chromaprint) y añádelo a la variable <code>PATH</code>. Para pruebas sin servicios externos, exporta <code>SANDBOX_TEST=1</code> (PowerShell: <code>$env:SANDBOX_TEST='1'</code>).</p>
+    </section>
+
+    <section class="box">
+      <h2>Reportes y logs</h2>
+      <p>Los reportes y logs se guardan en la carpeta <code>logs/</code> con marcas temporales. El CSV se escribe con BOM para compatibilidad con Excel (<code>utf-8-sig</code>).</p>
+      <p>Ejemplos:</p>
+      <ul>
+        <li><code>logs/log_2026-02-18_17-38-53.csv</code></li>
+        <li><code>logs/reporte_2026-02-18_17-38-53.md</code></li>
+      </ul>
+    </section>
+
+    <section class="box">
+      <h2>Publicar en GitHub Pages</h2>
+      <p>Paso rápido para publicar la documentación:</p>
+      <pre><code>git checkout -b gh-pages
+mkdir -p public
+# (ya existe public/index.html)
+git add public/index.html public/style.css public/main.js
+git commit -m "docs: añadir index.html para GitHub Pages"
+git push origin gh-pages
+# Luego habilita GitHub Pages desde la rama gh-pages en la configuración del repo
+</code></pre>
+    </section>
+
+    <section class="box">
+      <h2>Notas sobre IA y límites</h2>
+      <ul>
+        <li>Las llamadas a OpenAI pueden generar errores 429 (rate limit). Se recomienda probar primero con <code>SANDBOX_TEST=1</code>.</li>
+        <li>El uso de IA tiene coste por tokens; monitorizar la cuenta si se procesa gran volumen.</li>
+      </ul>
+    </section>
+
+    <section class="box">
+      <h2>Contacto y Contribuciones</h2>
+      <p>Abre un issue o PR en el repositorio: <a href="https://github.com/Iyov/CachaTuMusica">https://github.com/Iyov/CachaTuMusica</a></p>
+    </section>
+
+  </main>
+
+  <footer>
+    © CachaTuMusica — Documentación generada automáticamente (2026)
+  </footer>
+</body>
+</html>

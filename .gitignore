@@ -146,9 +146,9 @@ cython_debug/
 config.json
 
 # Reportes generados por CachaTuMusica
-log_actualizacion.csv
-reporte.md
-reporte_*.csv
+log_*.csv
+reporte*.md
+reporte*.csv
 *.backup_*/
 
 # Audio files (common in audio tagger projects)
