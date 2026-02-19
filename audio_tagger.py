@@ -113,7 +113,20 @@ class Configuracion:
         self.cargar_configuracion()
     
     def cargar_configuracion(self):
-        """Carga configuración desde archivo JSON o variables de entorno"""
+        """Carga configuración desde .env.local (opcional), archivo JSON o variables de entorno"""
+        # Intentar cargar .env.local manualmente si existe para evitar dependencia de python-dotenv
+        env_path = Path(".env.local")
+        if env_path.exists():
+            try:
+                with open(env_path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        if line.strip() and not line.startswith('#'):
+                            key, _, value = line.partition('=')
+                            os.environ[key.strip()] = value.strip()
+                logger.info("Cargadas variables desde .env.local")
+            except Exception as e:
+                logger.warning(f"Error cargando .env.local: {e}")
+
         # Primero intentar desde archivo
         if os.path.exists(self.config_file):
             try:
@@ -504,7 +517,9 @@ class AudioTagger:
         try:
             def to_title_case(text: str) -> str:
                 if not text: return text
-                return ' '.join(word.capitalize() for word in text.replace('_', ' ').split())
+                # Eliminar comas completamente para evitar conflictos en CSV
+                clean_text = text.replace(',', '').replace('_', ' ')
+                return ' '.join(word.capitalize() for word in clean_text.split())
 
             # Padre (N-1): (Año) Disco
             parent_dir = archivo.parent.name
@@ -631,7 +646,7 @@ class AudioTagger:
 
         def sanitize(name: str) -> str:
             import re
-            return re.sub(r'[\\/:*?"<>|]', '', name).strip()
+            return re.sub(r'[\\/:*?"<>|,]', '', name).strip()
 
         # 1. Análisis Inicial
         tags_previos = self.leer_tags_actuales(archivo)
@@ -791,38 +806,39 @@ class AudioTagger:
         out_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Usar 'utf-8-sig' para incluir BOM y mejorar compatibilidad con Excel en Windows
+        # Usar ';' como delimitador para evitar conflictos con comas y por compatibilidad regional
         with open(out_path, 'w', newline='', encoding='utf-8-sig') as f:
             fieldnames = [
-                'archivo', 'estado', 'fuente',
-                'caso',
-                'titulo_previo', 'artista_previo', 'album_previo', 'año_previo', 'genero_previo',
-                'titulo_nuevo', 'artista_nuevo', 'album_nuevo', 'año_nuevo', 'genero_nuevo',
-                'mensaje'
+                'Archivo', 'Estado', 'Fuente', 'Caso',
+                'Titulo_Previo', 'Artista_Previo', 'Album_Previo', 'Año_Previo', 'Genero_Previo',
+                'Titulo_Nuevo', 'Artista_Nuevo', 'Album_Nuevo', 'Año_Nuevo', 'Genero_Nuevo',
+                'Mensaje'
             ]
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=';')
             writer.writeheader()
             
             for resultado in self.resultados:
-                # Asegurar que no haya valores None para evitar problemas de encoding/CSV
+                # Asegurar que no haya valores None y quitar comas para evitar conflictos
                 def s(v):
-                    return '' if v is None else str(v)
+                    if v is None: return ''
+                    return str(v).replace(',', '')
 
                 row = {
-                    'archivo': s(resultado.archivo),
-                    'estado': s(resultado.estado),
-                    'fuente': s(resultado.fuente),
-                    'caso': s(resultado.caso),
-                    'titulo_previo': s(resultado.datos_previos.title),
-                    'artista_previo': s(resultado.datos_previos.artist),
-                    'album_previo': s(resultado.datos_previos.album),
-                    'año_previo': s(resultado.datos_previos.year),
-                    'genero_previo': s(resultado.datos_previos.genre),
-                    'titulo_nuevo': s(resultado.datos_nuevos.title),
-                    'artista_nuevo': s(resultado.datos_nuevos.artist),
-                    'album_nuevo': s(resultado.datos_nuevos.album),
-                    'año_nuevo': s(resultado.datos_nuevos.year),
-                    'genero_nuevo': s(resultado.datos_nuevos.genre),
-                    'mensaje': s(resultado.mensaje)
+                    'Archivo': s(resultado.archivo),
+                    'Estado': s(resultado.estado),
+                    'Fuente': s(resultado.fuente),
+                    'Caso': s(resultado.caso),
+                    'Titulo_Previo': s(resultado.datos_previos.title),
+                    'Artista_Previo': s(resultado.datos_previos.artist),
+                    'Album_Previo': s(resultado.datos_previos.album),
+                    'Año_Previo': s(resultado.datos_previos.year),
+                    'Genero_Previo': s(resultado.datos_previos.genre),
+                    'Titulo_Nuevo': s(resultado.datos_nuevos.title),
+                    'Artista_Nuevo': s(resultado.datos_nuevos.artist),
+                    'Album_Nuevo': s(resultado.datos_nuevos.album),
+                    'Año_Nuevo': s(resultado.datos_nuevos.year),
+                    'Genero_Nuevo': s(resultado.datos_nuevos.genre),
+                    'Mensaje': s(resultado.mensaje)
                 }
                 writer.writerow(row)
         

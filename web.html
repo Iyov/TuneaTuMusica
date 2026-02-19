@@ -1,52 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TuneaTuMusica Web — No-Install Edition</title>
-  <meta name="description" content="Organiza tu biblioteca musical directamente desde el navegador. Sin instalación, 100% privado y local.">
-  <meta name="keywords" content="tunea tu musica, web edition, mp3 tagger, flac tagger, sin instalacion, privacidad musical">
+  <meta name="description" content="Organiza tu biblioteca musical directamente desde el navegador. Sin instalación, 100% privado y local." />
+  <meta name="keywords" content="tunea tu musica, web edition, mp3 tagger, flac tagger, sin instalacion, privacidad musical" />
   
   <!-- Open Graph -->
-  <meta property="og:title" content="TuneaTuMusica Web — No-Install Edition">
-  <meta property="og:description" content="Limpia y organiza tu música localmente en el navegador con total privacidad.">
-  <meta property="og:image" content="img/TuneaTuMusica_Logo_SF.png">
-  <meta property="og:url" content="https://iyov.github.io/TuneaTuMusica/web.html">
+  <meta property="og:title" content="TuneaTuMusica Web — No-Install Edition" />
+  <meta property="og:description" content="Limpia y organiza tu música localmente en el navegador con total privacidad." />
+  <meta property="og:image" content="img/TuneaTuMusica_Logo_SF.png" />
+  <meta property="og:url" content="https://iyov.github.io/TuneaTuMusica/web.html" />
   
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/music-metadata-browser@2.5.11/dist/index.js"></script>
+  <link rel="stylesheet" href="css/web.css?v=2026-02-19_2" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/music-metadata-browser@2.5.11/dist/index.min.js"></script>
   <script src="https://unpkg.com/browser-id3-writer@6.3.1/dist/browser-id3-writer.mjs" type="module"></script>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #0f172a;
-      color: #e2e8f0;
-      min-height: 100vh;
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
-    }
-    .glass-card {
-      background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 1rem;
-    }
-    .glass-button {
-      background: rgba(99, 102, 241, 0.2);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      transition: all 0.3s ease;
-    }
-    .glass-button:hover:not(:disabled) {
-      background: rgba(99, 102, 241, 0.3);
-      border-color: rgba(99, 102, 241, 0.5);
-      transform: translateY(-1px);
-    }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-  </style>
 </head>
 <body class="p-4 md:p-8">
   <div class="max-w-6xl mx-auto space-y-8">
@@ -95,16 +65,33 @@
         </section>
 
         <section class="glass-card p-6 space-y-4">
-          <div class="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-500">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold uppercase tracking-widest text-slate-500">Configuración</span>
+          </div>
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <div class="relative">
+              <input type="checkbox" id="chkDryRun" checked class="sr-only peer">
+              <div class="w-10 h-5 bg-slate-700 rounded-full peer peer-checked:bg-indigo-500 transition-colors"></div>
+              <div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform"></div>
+            </div>
+            <span class="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">Modo Simulación (Dry Run)</span>
+          </label>
+
+          <div class="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-500 pt-2">
             <span>Progreso</span>
             <span id="progressText">0%</span>
           </div>
           <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
             <div id="progressBar" class="h-full bg-indigo-500 w-0 transition-all duration-300"></div>
           </div>
-          <button id="btnProcess" disabled class="w-full glass-button py-3 rounded-xl font-bold text-indigo-300 disabled:opacity-30 disabled:cursor-not-allowed">
-            Tunea Tu Música
-          </button>
+          <div class="grid grid-cols-2 gap-3">
+            <button id="btnProcess" disabled class="glass-button py-3 rounded-xl font-bold text-indigo-300 disabled:opacity-30 disabled:cursor-not-allowed text-sm">
+              Tunea Tu Música
+            </button>
+            <button id="btnDownloadReport" disabled class="glass-button py-3 rounded-xl font-bold text-emerald-300 disabled:opacity-30 disabled:cursor-not-allowed text-sm">
+              Bajar Reporte
+            </button>
+          </div>
         </section>
       </div>
 
@@ -127,17 +114,21 @@
   </div>
 
   <script type="module">
-    import ID3Writer from 'https://unpkg.com/browser-id3-writer@6.3.1/dist/browser-id3-writer.mjs';
+    import { ID3Writer } from 'https://unpkg.com/browser-id3-writer@6.3.1/dist/browser-id3-writer.mjs';
 
     let directoryHandle = null;
     let files = [];
     const btnSelect = document.getElementById('btnSelect');
     const btnProcess = document.getElementById('btnProcess');
+    const btnDownloadReport = document.getElementById('btnDownloadReport');
+    const chkDryRun = document.getElementById('chkDryRun');
     const logContent = document.getElementById('logContent');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
     const countUpdated = document.getElementById('countUpdated');
     const countError = document.getElementById('countError');
+    
+    let reportData = []; // Para el CSV
 
     const log = (msg, type = 'info') => {
       const div = document.createElement('div');
@@ -146,79 +137,213 @@
       logContent.prepend(div);
     };
 
+    // Verificación de Compatibilidad y Seguridad
+    if (!window.showDirectoryPicker) {
+      log("❌ El 'File System Access API' no está disponible.", "error");
+      log("👉 Esto ocurre si usas un navegador no compatible (usa Chrome/Edge) o si abres el archivo como 'file://'.", "warning");
+      log("💡 SOLUCIÓN: Ejecuta un servidor local (ej: 'npx serve .') o entra vía HTTPS.", "info");
+      btnSelect.disabled = true;
+      btnSelect.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      log("🚀 TuneaTuMusica Web listo. Selecciona tu carpeta de música local.", "success");
+      console.log("File System Access API detected successfully.");
+    }
+
+    // Capture global errors for debugging
+    window.addEventListener('error', (e) => {
+      log(`🐞 Error detectado: ${e.message}`, 'error');
+      console.error("Global error caught:", e);
+    });
+
     btnSelect.onclick = async () => {
+      console.log("Button 'Seleccionar Carpeta' clicked.");
       try {
+        if (!window.showDirectoryPicker) throw new Error("API not supported in this context");
+        
         directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        console.log("Directory handle obtained:", directoryHandle.name);
+        
+        log(`📂 Escaneando carpeta: ${directoryHandle.name}...`, 'info');
         document.getElementById('folderInfo').classList.remove('hidden');
         document.getElementById('folderName').innerText = directoryHandle.name;
         
         files = [];
-        for await (const entry of directoryHandle.values()) {
-          if (entry.kind === 'file' && /\.(mp3|flac)$/i.test(entry.name)) {
-            files.push(entry);
+        
+        // Recursive scan helper
+        async function scanDirectory(handle, pathParts = []) {
+          for await (const entry of handle.values()) {
+            if (entry.kind === 'file' && /\.(mp3|flac)$/i.test(entry.name)) {
+              files.push({handle: entry, pathParts: pathParts});
+              if (files.length % 10 === 0) {
+                document.getElementById('countUpdated').innerText = files.length;
+              }
+            } else if (entry.kind === 'directory') {
+              await scanDirectory(entry, [...pathParts, entry.name]);
+            }
           }
         }
+
+        await scanDirectory(directoryHandle);
         
         btnProcess.disabled = files.length === 0;
-        log(`📁 Carpeta: ${directoryHandle.name} (${files.length} archivos)`, 'success');
+        document.getElementById('countUpdated').innerText = files.length;
+        log(`✨ Escaneo completado. ${files.length} archivos de audio listos.`, 'success');
+        
+        if (files.length === 0) {
+          log("⚠️ No se encontraron archivos MP3 o FLAC en esta carpeta.", "warning");
+        } else {
+          log("👉 Presiona 'Tunea Tu Música' para comenzar el proceso.", "info");
+        }
       } catch (err) {
         if (err.name !== 'AbortError') log(err.message, 'error');
       }
     };
 
-    const toTitleCase = (str) => str ? str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : '';
+    const esValido = (v) => {
+      if (!v) return false;
+      const lv = v.toLowerCase().trim();
+      return !['', 'unknown', 'untitled', 'track', 'artista desconocido', 'desconocido'].includes(lv);
+    };
+
+    const sanitize = (name) => name ? name.replace(/[\\/:*?"<>|,]/g, '').trim() : '';
+
+    const toTitleCase = (text) => {
+      if (!text) return text;
+      // Eliminar comas completamente para evitar conflictos en CSV
+      const cleanText = text.replace(/,/g, '').replace(/_/g, ' ');
+      const exceptions = ['a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'of'];
+      return cleanText.split(/\s+/).map((word, index) => {
+        if (index > 0 && exceptions.includes(word.toLowerCase())) return word.toLowerCase();
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      }).join(' ');
+    };
 
     btnProcess.onclick = async () => {
+      const isDryRun = chkDryRun.checked;
       btnProcess.disabled = true;
       btnSelect.disabled = true;
+      btnDownloadReport.disabled = true;
+      
+      // Header CSV más completo
+      reportData = [["Ruta Original", "Artista", "Álbum", "Año", "Track", "Título", "Caso", "Resultado", "Mensaje"]];
+      
       let okCount = 0;
       let errCount = 0;
 
+      log(isDryRun ? "🧪 Iniciando SIMULACIÓN..." : "⚡ Iniciando PROCESO REAL...", isDryRun ? 'info' : 'warning');
+
       for (let i = 0; i < files.length; i++) {
-        const handle = files[i];
+        const item = files[i];
+        const handle = item.handle;
+        const pathParts = item.pathParts;
+        const fullPath = [...pathParts, handle.name].join('/');
+
         try {
           const file = await handle.getFile();
-          const metadata = await musicMetadata.parseBlob(file);
           
-          let artist = metadata.common.artist || '';
-          let track = metadata.common.track.no || 0;
-          let title = metadata.common.title || '';
-          let caso = 'D';
+          let tagsPrevios = { artist: null, album: null, year: null, track: null, title: null };
+          let metadataError = null;
 
-          if (artist && title) {
-            caso = 'B';
-          } else {
-            const match = handle.name.match(/^(?:(\d+)\s*-\s*)?(.+)\.(?:mp3|flac)$/i);
-            if (match) {
-              track = track || parseInt(match[1]) || 0;
-              title = title || match[2];
-              caso = 'A';
+          // Intento de lectura de Metadatos (Búsqueda exhaustiva de la global)
+          try {
+            const mm = window.musicMetadata || window.mm || window.MusicMetadata;
+            if (!mm) throw new Error("Librería de metadatos no cargada (Global not found)");
+            const metadata = await mm.parseBlob(file);
+            tagsPrevios = {
+              artist: metadata.common.artist,
+              album: metadata.common.album,
+              year: metadata.common.year ? String(metadata.common.year) : null,
+              track: metadata.common.track?.no ? String(metadata.common.track.no) : null,
+              title: metadata.common.title
+            };
+          } catch (mErr) {
+            metadataError = mErr.message;
+            console.warn(`No se pudo leer metadata de ${handle.name}: ${mErr.message}`);
+          }
+
+          // Análisis de Ruta (N-1, N-2)
+          let artistDir = null, albumDir = null, yearDir = null, trackName = null, titleName = null;
+
+          if (pathParts.length >= 1) {
+            const parentName = pathParts[pathParts.length - 1];
+            const mAlbum = parentName.match(/^\((\d{4,})\)\s*(.+)$/);
+            if (mAlbum) {
+              yearDir = mAlbum[1];
+              albumDir = toTitleCase(mAlbum[2]);
             } else {
-              caso = 'C';
+              albumDir = toTitleCase(parentName);
             }
           }
 
-          const f_artist = toTitleCase(artist || 'Desconocido');
-          const f_title = toTitleCase(title || handle.name);
-
-          if (handle.name.toLowerCase().endsWith('.mp3')) {
-            const buffer = await file.arrayBuffer();
-            const writer = new ID3Writer(buffer);
-            writer.setFrame('TPE1', [f_artist]).setFrame('TIT2', f_title).setFrame('TCON', ['Metal']);
-            writer.addTag();
-            
-            const writable = await handle.createWritable();
-            await writable.write(writer.arrayBuffer);
-            await writable.close();
-            log(`✅ [Caso ${caso}] Actualizado: ${f_artist} - ${f_title}`, 'success');
-          } else {
-            log(`⚠️ [Caso ${caso}] ${handle.name}: Lectura OK`, 'info');
+          if (pathParts.length >= 2) {
+            artistDir = toTitleCase(pathParts[pathParts.length - 2]);
           }
+
+          const stem = handle.name.replace(/\.[^/.]+$/, "");
+          const mName = stem.match(/^\s*(\d{1,2})\s*[-_.\s]+\s*(.+)$/);
+          if (mName) {
+            trackName = mName[1].padStart(2, '0');
+            titleName = toTitleCase(mName[2]);
+          } else {
+            titleName = toTitleCase(stem);
+          }
+
+          const derivedPath = { artist: artistDir, album: albumDir, year: yearDir, track: trackName, title: titleName };
+
+          // Evaluación de Casos según audio_tagger.py
+          const pathHasInfo = esValido(derivedPath.artist) && esValido(derivedPath.title);
+          const tagsHaveInfo = esValido(tagsPrevios.artist) && esValido(tagsPrevios.title);
           
+          let f_artist, f_album, f_year, f_track, f_title, caso;
+
+          if (pathHasInfo && tagsHaveInfo) {
+            ({ artist: f_artist, album: f_album, year: f_year, track: f_track, title: f_title } = derivedPath);
+            caso = 'D';
+          } else if (pathHasInfo) {
+            ({ artist: f_artist, album: f_album, year: f_year, track: f_track, title: f_title } = derivedPath);
+            caso = 'A';
+          } else if (tagsHaveInfo) {
+            ({ artist: f_artist, album: f_album, year: f_year, track: f_track, title: f_title } = tagsPrevios);
+            caso = 'B';
+          } else {
+            // Fallback total (Caso C/E)
+            ({ artist: f_artist, album: f_album, year: f_year, track: f_track, title: f_title } = derivedPath);
+            caso = metadataError ? 'E (Error Meta)' : 'C'; 
+          }
+
+          f_artist = toTitleCase(f_artist) || "Otros";
+          f_album = toTitleCase(f_album) || "Otros";
+          f_title = toTitleCase(f_title);
+          f_year = f_year || "0000";
+          f_track = (f_track || "00").padStart(2, '0');
+
+          const extension = handle.name.split('.').pop();
+          const newName = `${f_track} - ${sanitize(f_artist)} - ${sanitize(f_title)}.${extension}`;
+
+          if (!isDryRun) {
+            if (handle.name !== newName && handle.move) {
+              await handle.move(newName);
+            }
+            if (handle.name.toLowerCase().endsWith('.mp3')) {
+              const buffer = await file.arrayBuffer();
+              const writer = new ID3Writer(buffer);
+              writer.setFrame('TPE1', [f_artist]).setFrame('TIT2', f_title).setFrame('TCON', ['Metal']).setFrame('TALB', f_album).setFrame('TDRC', f_year).setFrame('TRCK', f_track);
+              writer.addTag();
+              const writable = await handle.createWritable();
+              await writable.write(writer.arrayBuffer);
+              await writable.close();
+            }
+            log(`✅ [Caso ${caso}] ${newName}`, 'success');
+          } else {
+            log(`🔍 [Simulado] ${fullPath} ➝ ${newName}`, 'info');
+          }
+
+          reportData.push([fullPath, f_artist, f_album, f_year, f_track, f_title, caso, "OK", isDryRun ? "Simulado" : "Actualizado"]);
           okCount++;
           countUpdated.innerText = okCount;
         } catch (err) {
           log(`❌ Error en ${handle.name}: ${err.message}`, 'error');
+          reportData.push([fullPath, "-", "-", "-", "-", "-", "-", "ERROR", err.message]);
           errCount++;
           countError.innerText = errCount;
         }
@@ -229,7 +354,34 @@
 
       btnProcess.disabled = false;
       btnSelect.disabled = false;
-      log('✨ ¡Tuning completado!', 'success');
+      btnDownloadReport.disabled = false;
+      log('✨ ¡Tuning completado! Ya podís bajar el reporte.', 'success');
+    };
+
+    btnDownloadReport.onclick = () => {
+      // Usar punto y coma como separador para mayor compatibilidad en regiones de habla hispana
+      const csvContent = reportData.map(e => e.map(cell => {
+        let val = (cell || "").toString().replace(/"/g, '""');
+        // Remover comas residuales por seguridad extrema
+        val = val.replace(/,/g, '');
+        return `"${val}"`;
+      }).join(";")).join("\n");
+      // Agregar BOM (\uFEFF) para que Excel reconozca UTF-8 con tildes y ñ
+      const blob = new Blob(["\uFEFF", csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const datePart = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      const timePart = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+      const ts = `${datePart}_${timePart}`;
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Reporte_TuneaTuMusica_${ts}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      log("📥 Reporte descargado (UTF-8 OK).", "success");
     };
   </script>
 </body>
