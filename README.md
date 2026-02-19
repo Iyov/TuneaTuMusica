@@ -92,25 +92,248 @@ TuneaTuMusica no "adivina", aplica lógica de ingeniería para resolver el estad
 
 ## 🚀 Guía de Inicio Rápido
 
-### Instalación
+### 1. Clonar el Repositorio
 ```bash
 git clone https://github.com/Iyov/TuneaTuMusica.git
 cd TuneaTuMusica
+```
+
+### 2. Instalación según tu Sistema Operativo
+
+#### 🪟 Windows
+
+```powershell
+# Verificar que Python está instalado (debe ser 3.8 o superior)
+python --version
+
+# Si no tienes Python, descárgalo desde:
+# https://www.python.org/downloads/windows/
+# ⚠️ IMPORTANTE: Durante la instalación, marca "Add Python to PATH"
+
+# Crear entorno virtual
+python -m venv venv
+
+# Activar entorno virtual
+venv\Scripts\activate
+
+# Instalar dependencias de Python
 pip install -r requirements.txt
 ```
 
-### Uso Recomendado (GUI)
-Lanza la interfaz principal para un control total:
+**Notas para Windows:**
+- Si `python` no funciona, intenta con `py` o `python3`
+- Tkinter viene incluido con Python en Windows, no requiere instalación adicional
+- Si tienes problemas con permisos, ejecuta PowerShell como Administrador
+
+#### 🐧 Linux (Ubuntu/Debian)
+
 ```bash
+# Instalar Python y dependencias del sistema
+sudo apt update
+sudo apt install python3 python3-venv python3-pip python3-tk
+
+# Crear entorno virtual
+python3 -m venv venv
+
+# Activar entorno virtual
+source venv/bin/activate
+
+# Instalar dependencias de Python
+pip install -r requirements.txt
+```
+
+**Notas para Linux:**
+- `python3-tk` es esencial para la interfaz gráfica
+- En otras distribuciones: Fedora/RHEL usa `python3-tkinter`, Arch usa `tk`
+
+#### 🍎 macOS
+
+```bash
+# Instalar Python (si no lo tienes)
+# Opción 1: Usando Homebrew (recomendado)
+brew install python3 python-tk
+
+# Opción 2: Descargar desde python.org
+# https://www.python.org/downloads/macos/
+
+# Crear entorno virtual
+python3 -m venv venv
+
+# Activar entorno virtual
+source venv/bin/activate
+
+# Instalar dependencias de Python
+pip install -r requirements.txt
+```
+
+**Notas para macOS:**
+- Si usas el Python del sistema, puede que necesites instalar Tkinter por separado
+- Homebrew es la forma más sencilla de tener todo configurado correctamente
+
+### 3. Configurar Variables de Entorno
+
+Crea un archivo `.env` o `config.json` con tus credenciales:
+
+#### Opción A: Usando archivo .env
+```bash
+# Copiar el archivo de ejemplo
+cp .env.example .env
+
+# Editar con tu editor favorito
+nano .env  # o vim, code, etc.
+```
+
+Contenido del archivo `.env`:
+```bash
+# API Key de AcoustID (REQUERIDA)
+# Obtén una gratuita en: https://acoustid.org/
+ACOUSTID_API_KEY=tu_api_key_aqui
+
+# Credenciales de MusicBrainz (opcional)
+MUSICBRAINZ_USER=tu_usuario
+MUSICBRAINZ_PASSWORD=tu_password
+
+# API Key de OpenAI (opcional, para fallback con IA)
+OPENAI_API_KEY=sk-tu_api_key_aqui
+IA_ENABLED=true
+```
+
+#### Opción B: Usando archivo config.json
+```bash
+# Copiar el archivo de ejemplo
+cp config.example.json config.json
+
+# Editar con tu editor favorito
+nano config.json
+```
+
+Contenido del archivo `config.json`:
+```json
+{
+  "acoustid_api_key": "tu_api_key_aqui",
+  "openai_api_key": "sk-tu_api_key_aqui",
+  "ia_enabled": true,
+  "musicbrainz_user": "tu_usuario",
+  "musicbrainz_password": "tu_password"
+}
+```
+
+### 4. Obtener API Keys
+
+#### 🔑 AcoustID API Key (REQUERIDA)
+1. Visita: https://acoustid.org/
+2. Crea una cuenta gratuita
+3. Ve a "Applications" y crea una nueva aplicación
+4. Copia tu API Key y pégala en tu archivo de configuración
+
+#### 🤖 OpenAI API Key (OPCIONAL)
+1. Visita: https://platform.openai.com/api-keys
+2. Crea una cuenta o inicia sesión
+3. Genera una nueva API Key
+4. Copia la key y pégala en tu archivo de configuración
+5. Establece `IA_ENABLED=true` para activar el fallback con IA
+
+### 5. Ejecutar la Aplicación
+
+#### Interfaz Gráfica (Recomendado)
+
+**Windows:**
+```powershell
+# Asegúrate de tener el entorno virtual activado
+venv\Scripts\activate
+
+# Ejecutar la aplicación GUI
 python gui.py
 ```
 
-### Verificación Segura (Sandbox)
-Si querés ver qué haría el motor con tu música actual sin modificar nada:
+**Linux/macOS:**
+```bash
+# Asegúrate de tener el entorno virtual activado
+source venv/bin/activate
+
+# Ejecutar la aplicación GUI
+python gui.py
+```
+
+#### Modo Línea de Comandos
+
+**Windows:**
+```powershell
+# Procesar una carpeta específica
+python audio_tagger.py C:\Users\TuUsuario\Musica
+
+# Modo simulación (no modifica archivos)
+python audio_tagger.py C:\Users\TuUsuario\Musica --dry-run
+```
+
+**Linux/macOS:**
+```bash
+# Procesar una carpeta específica
+python audio_tagger.py /ruta/a/tu/musica
+
+# Modo simulación (no modifica archivos)
+python audio_tagger.py /ruta/a/tu/musica --dry-run
+```
+
+### 6. Verificación Segura (Sandbox)
+Si querés ver qué haría el motor con tu música sin modificar nada:
 ```bash
 python sandbox_test.py
 ```
 *Este comando corre automáticamente en modo **--dry-run** sobre tu carpeta `test/`.*
+
+### 7. Uso Diario
+
+Para ejecutar la aplicación después de la instalación inicial:
+
+**Windows:**
+```powershell
+# Navegar al directorio del proyecto
+cd TuneaTuMusica
+
+# Activar el entorno virtual
+venv\Scripts\activate
+
+# Ejecutar la aplicación
+python gui.py
+
+# Cuando termines, desactivar el entorno virtual
+deactivate
+```
+
+**Linux/macOS:**
+```bash
+# Navegar al directorio del proyecto
+cd TuneaTuMusica
+
+# Activar el entorno virtual
+source venv/bin/activate
+
+# Ejecutar la aplicación
+python gui.py
+
+# Cuando termines, desactivar el entorno virtual
+deactivate
+```
+
+---
+
+## 🔧 Solución de Problemas Comunes
+
+### Windows
+- **Error: "python no se reconoce"**: Reinstala Python y marca "Add Python to PATH"
+- **Error de permisos**: Ejecuta PowerShell como Administrador
+- **Tkinter no encontrado**: Reinstala Python desde python.org (viene incluido)
+
+### Linux
+- **Error: "No module named '_tkinter'"**: Instala `python3-tk` con `sudo apt install python3-tk`
+- **Error de permisos**: Usa `sudo` solo para instalar paquetes del sistema, no para pip
+- **Python no encontrado**: Instala con `sudo apt install python3 python3-pip`
+
+### macOS
+- **Tkinter no funciona**: Instala con Homebrew: `brew install python-tk`
+- **Certificados SSL**: Ejecuta `/Applications/Python\ 3.x/Install\ Certificates.command`
+- **Permisos denegados**: Usa `sudo` solo si es necesario, prefiere Homebrew
 
 ---
 

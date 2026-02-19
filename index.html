@@ -172,25 +172,150 @@ cd TuneaTuMusica</code><button class="copy-btn" onclick="copyToClipboard('git-cl
       </div>
 
       <div style="margin-bottom: 2.5rem;">
-        <h3>2. Instalar Dependencias</h3>
-        <p>Asegúrate de tener Python instalado y ejecuta este comando para instalar las librerías necesarias:</p>
-        <pre><code id="pip-install">pip install -r requirements.txt</code><button class="copy-btn" onclick="copyToClipboard('pip-install')">Copiar</button></pre>
+        <h3>2. Instalar Dependencias según tu Sistema</h3>
+        
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+          <div style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+            <h4 style="color: #60a5fa; margin-bottom: 0.5rem;">🪟 Windows</h4>
+            <pre><code id="windows-install"># Verificar Python instalado
+python --version
+
+# Crear entorno virtual
+python -m venv venv
+
+# Activar entorno virtual
+venv\Scripts\activate
+
+# Instalar dependencias
+pip install -r requirements.txt</code><button class="copy-btn" onclick="copyToClipboard('windows-install')">Copiar</button></pre>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">
+              ⚠️ Si no tienes Python: <a href="https://www.python.org/downloads/windows/" target="_blank" style="color: var(--accent);">Descargar aquí</a><br>
+              Marca "Add Python to PATH" durante la instalación
+            </p>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+            <h4 style="color: #4ade80; margin-bottom: 0.5rem;">🐧 Linux (Ubuntu/Debian)</h4>
+            <pre><code id="linux-install"># Instalar Python y dependencias
+sudo apt update
+sudo apt install python3 python3-venv python3-pip python3-tk
+
+# Crear entorno virtual
+python3 -m venv venv
+source venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt</code><button class="copy-btn" onclick="copyToClipboard('linux-install')">Copiar</button></pre>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">
+              ℹ️ python3-tk es esencial para la GUI
+            </p>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+            <h4 style="color: #a78bfa; margin-bottom: 0.5rem;">🍎 macOS</h4>
+            <pre><code id="macos-install"># Instalar Python con Homebrew
+brew install python3 python-tk
+
+# Crear entorno virtual
+python3 -m venv venv
+source venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt</code><button class="copy-btn" onclick="copyToClipboard('macos-install')">Copiar</button></pre>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem;">
+              ℹ️ Homebrew recomendado: <a href="https://brew.sh/" target="_blank" style="color: var(--accent);">brew.sh</a>
+            </p>
+          </div>
+        </div>
       </div>
 
       <div style="margin-bottom: 2.5rem;">
-        <h3>3. Ejecución Local</h3>
+        <h3>3. Configurar API Keys</h3>
+        <p>Copia el archivo de ejemplo y configura tus credenciales:</p>
+        <pre><code id="env-setup"># Copiar archivo de configuración
+cp .env.example .env
+
+# Editar con tu editor favorito
+nano .env  # o vim, code, etc.</code><button class="copy-btn" onclick="copyToClipboard('env-setup')">Copiar</button></pre>
+        
+        <div style="background: rgba(99, 102, 241, 0.1); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #6366f1; margin-top: 1rem;">
+          <h4 style="color: #6366f1; margin-bottom: 0.5rem;">🔑 API Keys Necesarias</h4>
+          <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+            <li><strong>AcoustID</strong> (REQUERIDA): <a href="https://acoustid.org/" target="_blank" style="color: var(--accent);">Obtener gratis aquí</a></li>
+            <li><strong>OpenAI</strong> (OPCIONAL): <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--accent);">Obtener aquí</a> - Para fallback con IA</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 2.5rem;">
+        <h3>4. Ejecución</h3>
         <p>Tienes dos formas de usar TuneaTuMusica dependiendo de tu preferencia:</p>
         
         <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
           <div style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">🖥️ Modo Visual (GUI) - Recomendado</h4>
+            <p style="font-size: 0.9rem; margin-bottom: 1rem;">La interfaz moderna para un control total e intuitivo.</p>
+            
+            <p style="font-size: 0.85rem; color: #60a5fa; margin-bottom: 0.5rem;">Windows:</p>
+            <pre><code id="gui-run-win">venv\Scripts\activate
+python gui.py</code><button class="copy-btn" onclick="copyToClipboard('gui-run-win')">Copiar</button></pre>
+            
+            <p style="font-size: 0.85rem; color: #4ade80; margin-bottom: 0.5rem; margin-top: 1rem;">Linux/macOS:</p>
+            <pre><code id="gui-run-unix">source venv/bin/activate
+python gui.py</code><button class="copy-btn" onclick="copyToClipboard('gui-run-unix')">Copiar</button></pre>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
             <h4 style="color: var(--accent); margin-bottom: 0.5rem;">💻 Modo Terminal (CLI)</h4>
             <p style="font-size: 0.9rem; margin-bottom: 1rem;">Ideal para procesar miles de archivos rápidamente.</p>
-            <pre><code id="cli-run">python audio_tagger.py --dir "tu/musica"</code><button class="copy-btn" onclick="copyToClipboard('cli-run')">Copiar</button></pre>
+            
+            <p style="font-size: 0.85rem; color: #60a5fa; margin-bottom: 0.5rem;">Windows:</p>
+            <pre><code id="cli-run-win">venv\Scripts\activate
+python audio_tagger.py C:\Musica</code><button class="copy-btn" onclick="copyToClipboard('cli-run-win')">Copiar</button></pre>
+            
+            <p style="font-size: 0.85rem; color: #4ade80; margin-bottom: 0.5rem; margin-top: 1rem;">Linux/macOS:</p>
+            <pre><code id="cli-run-unix">source venv/bin/activate
+python audio_tagger.py /ruta/musica</code><button class="copy-btn" onclick="copyToClipboard('cli-run-unix')">Copiar</button></pre>
           </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
-            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">🖥️ Modo Visual (GUI)</h4>
-            <p style="font-size: 0.9rem; margin-bottom: 1rem;">La interfaz moderna para un control total e intuitivo.</p>
-            <pre><code id="gui-run">python gui.py</code><button class="copy-btn" onclick="copyToClipboard('gui-run')">Copiar</button></pre>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 2.5rem;">
+        <h3>5. Modo Sandbox (Prueba Segura)</h3>
+        <p>Prueba el sistema sin modificar tus archivos reales:</p>
+        
+        <p style="font-size: 0.85rem; color: #60a5fa; margin-bottom: 0.5rem;">Windows:</p>
+        <pre><code id="sandbox-run-win">venv\Scripts\activate
+python sandbox_test.py</code><button class="copy-btn" onclick="copyToClipboard('sandbox-run-win')">Copiar</button></pre>
+        
+        <p style="font-size: 0.85rem; color: #4ade80; margin-bottom: 0.5rem; margin-top: 1rem;">Linux/macOS:</p>
+        <pre><code id="sandbox-run-unix">source venv/bin/activate
+python sandbox_test.py</code><button class="copy-btn" onclick="copyToClipboard('sandbox-run-unix')">Copiar</button></pre>
+      </div>
+      
+      <div style="background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #ef4444;">
+        <h3 style="color: #ef4444; margin-bottom: 0.5rem;">🔧 Solución de Problemas</h3>
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+          <div>
+            <h4 style="font-size: 0.95rem; color: #60a5fa;">Windows</h4>
+            <ul style="font-size: 0.85rem; margin: 0.5rem 0; padding-left: 1.5rem;">
+              <li>"python no se reconoce" → Reinstala Python y marca "Add to PATH"</li>
+              <li>Error de permisos → Ejecuta PowerShell como Administrador</li>
+            </ul>
+          </div>
+          <div>
+            <h4 style="font-size: 0.95rem; color: #4ade80;">Linux</h4>
+            <ul style="font-size: 0.85rem; margin: 0.5rem 0; padding-left: 1.5rem;">
+              <li>"No module named '_tkinter'" → <code>sudo apt install python3-tk</code></li>
+              <li>Usa <code>sudo</code> solo para paquetes del sistema</li>
+            </ul>
+          </div>
+          <div>
+            <h4 style="font-size: 0.95rem; color: #a78bfa;">macOS</h4>
+            <ul style="font-size: 0.85rem; margin: 0.5rem 0; padding-left: 1.5rem;">
+              <li>Tkinter no funciona → <code>brew install python-tk</code></li>
+              <li>Certificados SSL → Ejecuta Install Certificates.command</li>
+            </ul>
           </div>
         </div>
       </div>
