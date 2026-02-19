@@ -110,20 +110,20 @@
       
       <div style="background: rgba(0,0,0,0.3); padding: 2rem; border-radius: 15px; font-family: 'Consolas', monospace; font-size: 1.1rem; line-height: 1.8; color: #e2e8f0;">
         <span style="color: #60a5fa;">/</span><span style="color: #4ade80;">[Nombre Banda]</span><br>
-        <span style="color: #60a5fa;">&nbsp;&nbsp;└── </span><span style="color: #fbbf24;">( [Año] ) [Nombre del Disco]</span><br>
+        <span style="color: #60a5fa;">&nbsp;&nbsp;└── </span><span style="color: #fbbf24;">([Año]) [Nombre del Disco]</span><br>
         <span style="color: #60a5fa;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── </span><span style="color: #f87171;">[NumTrack]</span> - <span style="color: #60a5fa;">[Nombre Canción]</span>.<span style="color: #94a3b8;">[Ext]</span>
       </div>
 
       <div class="grid" style="margin-top: 3rem; grid-gap: 2rem;">
         <div>
           <h3 style="color: #4ade80;">👨‍🎤 El Artista (N-2)</h3>
-          <p>Extraído de la carpeta abuela. Se normaliza con la primera letra en mayúscula.</p>
+          <p>Extraído de la carpeta abuela (dos niveles arriba). Se normaliza con Title Case.</p>
           <p style="font-size: 0.8rem; color: var(--accent);">Ej: "caliban" ➝ "Caliban"</p>
         </div>
         <div>
-          <h3 style="color: #fbbf24;">💿 El Album (N-1)</h3>
-          <p>Extraído de la carpeta padre. Busca el año entre paréntesis <code>(2006)</code> y el nombre del disco.</p>
-          <p style="font-size: 0.8rem; color: var(--accent);">Ej: "(2006) the undying darkness" ➝ "The Undying Darkness"</p>
+          <h3 style="color: #fbbf24;">💿 El Álbum (N-1)</h3>
+          <p>Extraído de la carpeta padre. Busca el año entre paréntesis <code>(2006)</code> y el nombre del disco después.</p>
+          <p style="font-size: 0.8rem; color: var(--accent);">Ej: "(2006) the undying darkness" ➝ Año: "2006", Álbum: "The Undying Darkness"</p>
         </div>
         <div>
           <h3 style="color: #f87171;">🎵 La Pista</h3>
@@ -131,33 +131,111 @@
           <p style="font-size: 0.8rem; color: var(--accent);">Ej: "2 - I Rape Myself" ➝ "02 - I Rape Myself"</p>
         </div>
       </div>
+
+      <div style="margin-top: 3rem; background: rgba(99, 102, 241, 0.1); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #6366f1;">
+        <h3 style="color: #6366f1; margin-bottom: 1rem;">📝 Ejemplos de Transformación</h3>
+        <div style="font-family: 'Consolas', monospace; font-size: 0.9rem; line-height: 1.8;">
+          <div style="margin-bottom: 1rem;">
+            <span style="color: #94a3b8;">Antes:</span> <span style="color: #ef4444;">test/2x/(2002) Pateando Craneos/02-No Lo Podras Sostener.mp3</span><br>
+            <span style="color: #94a3b8;">Después:</span> <span style="color: #4ade80;">2x/(2002) Pateando Craneos/02 - No Lo Podras Sostener.mp3</span>
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <span style="color: #94a3b8;">Antes:</span> <span style="color: #ef4444;">test/Caliban/(2003) Shadow Hearts/05-bad_dream-ube.mp3</span><br>
+            <span style="color: #94a3b8;">Después:</span> <span style="color: #4ade80;">Caliban/(2003) Shadow Hearts/05 - Bad Dream Ube.mp3</span>
+          </div>
+          <div>
+            <span style="color: #94a3b8;">Antes:</span> <span style="color: #ef4444;">test/BTS Discos/(2004) Back To School/07 - Track 07.mp3</span><br>
+            <span style="color: #94a3b8;">Después:</span> <span style="color: #4ade80;">Bts Discos/(2004) Back To School/07 - Track 07.mp3</span>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section id="proceso" class="box">
-      <h2 style="text-align: center; margin-bottom: 2rem;">La Inteligencia detrás de TuneaTuMusica</h2>
+      <h2 style="text-align: center; margin-bottom: 2rem;">🧠 La Inteligencia detrás de TuneaTuMusica</h2>
       <p style="text-align: center; color: var(--text-dim); margin-bottom: 3rem;">Clasificamos cada archivo en uno de estos 4 estados para aplicar la solución perfecta de nomenclatura.</p>
       
-      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
-        <div class="box" style="border-top: 4px solid #4ade80;">
-          <h3 style="color: #4ade80; margin-bottom: 0.5rem;">🟢 Caso A</h3>
-          <p><strong>La Ruta manda</strong></p>
-          <p style="font-size: 0.9rem;">Extraemos datos de tus carpetas para arreglar los tags internos.</p>
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+        <div class="box" style="border-top: 4px solid #4ade80; background: rgba(74, 222, 128, 0.05);">
+          <h3 style="color: #4ade80; margin-bottom: 0.5rem;">🟢 Caso A: La Ruta Manda</h3>
+          <p style="font-size: 0.95rem; margin-bottom: 1rem;"><strong>Diagnóstico:</strong> El archivo tiene nombre correcto pero los Tags están vacíos.</p>
+          <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">
+            <code style="color: #94a3b8;">Archivo:</code><br>
+            <code style="color: #4ade80;">Caliban/(2006) The Undying Darkness/01 - Intro.mp3</code><br>
+            <code style="color: #94a3b8;">Tags:</code> <code style="color: #ef4444;">[Vacíos]</code>
+          </div>
+          <p style="font-size: 0.9rem;"><strong>Acción:</strong> Extraemos datos de la ruta y escribimos los Tags internos (ID3v1 e ID3v2).</p>
         </div>
-        <div class="box" style="border-top: 4 solid #60a5fa;">
-          <h3 style="color: #60a5fa; margin-bottom: 0.5rem;">🔵 Caso B</h3>
-          <p><strong>Los Tags mandan</strong></p>
-          <p style="font-size: 0.9rem;">Usamos metadatos internos para mover el archivo a su lugar correcto.</p>
+
+        <div class="box" style="border-top: 4px solid #60a5fa; background: rgba(96, 165, 250, 0.05);">
+          <h3 style="color: #60a5fa; margin-bottom: 0.5rem;">🔵 Caso B: Los Tags Mandan</h3>
+          <p style="font-size: 0.95rem; margin-bottom: 1rem;"><strong>Diagnóstico:</strong> Los Tags son correctos pero el nombre del archivo es un desastre.</p>
+          <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">
+            <code style="color: #94a3b8;">Archivo:</code><br>
+            <code style="color: #ef4444;">test/BTS/(2004) Back/08 - Track 08.mp3</code><br>
+            <code style="color: #94a3b8;">Tags:</code> <code style="color: #4ade80;">Artist="BTS", Title="Graduation Day"</code>
+          </div>
+          <p style="font-size: 0.9rem;"><strong>Acción:</strong> Usamos los Tags para renombrar y mover el archivo a la estructura estándar.</p>
         </div>
-        <div class="box" style="border-top: 4px solid #fbbf24;">
-          <h3 style="color: #fbbf24; margin-bottom: 0.5rem;">🟡 Caso C</h3>
-          <p><strong>Descubrimiento</strong></p>
-          <p style="font-size: 0.9rem;">Sin info en ruta ni tags. Activamos AcoustID o IA para identificar.</p>
+
+        <div class="box" style="border-top: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.05);">
+          <h3 style="color: #fbbf24; margin-bottom: 0.5rem;">🟡 Caso C: Búsqueda Externa</h3>
+          <p style="font-size: 0.95rem; margin-bottom: 1rem;"><strong>Diagnóstico:</strong> Ni la ruta ni los Tags tienen información válida.</p>
+          <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">
+            <code style="color: #94a3b8;">Archivo:</code><br>
+            <code style="color: #ef4444;">test/Caliban/(2007) The Awakening/10-Track-10.mp3</code><br>
+            <code style="color: #94a3b8;">Tags:</code> <code style="color: #ef4444;">[Vacíos o "Track 10"]</code>
+          </div>
+          <p style="font-size: 0.9rem;"><strong>Acción:</strong> Activamos búsqueda en cascada:</p>
+          <ul style="font-size: 0.85rem; margin-top: 0.5rem; padding-left: 1.5rem;">
+            <li>🎵 <strong>AcoustID</strong>: Fingerprinting acústico</li>
+            <li>🎼 <strong>MusicBrainz</strong>: Base de datos musical</li>
+            <li>🤖 <strong>IA (GPT-4o-mini)</strong>: Análisis inteligente</li>
+          </ul>
         </div>
-        <div class="box" style="border-top: 4px solid #f8fafc;">
-          <h3 style="color: #f8fafc; margin-bottom: 0.5rem;">⚪ Caso D</h3>
-          <p><strong>Estado Perfecto</strong></p>
-          <p style="font-size: 0.9rem;">El archivo ya cumple los tags y la estructura estricta. ¡Validado!</p>
+
+        <div class="box" style="border-top: 4px solid #f8fafc; background: rgba(248, 250, 252, 0.05);">
+          <h3 style="color: #f8fafc; margin-bottom: 0.5rem;">⚪ Caso D: Estado Perfecto</h3>
+          <p style="font-size: 0.95rem; margin-bottom: 1rem;"><strong>Diagnóstico:</strong> El archivo está perfectamente organizado.</p>
+          <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">
+            <code style="color: #94a3b8;">Archivo:</code><br>
+            <code style="color: #4ade80;">Caliban/(2009) Say Hello/08 - The Denegation.mp3</code><br>
+            <code style="color: #94a3b8;">Tags:</code> <code style="color: #4ade80;">[Todos correctos]</code>
+          </div>
+          <p style="font-size: 0.9rem;"><strong>Acción:</strong> ✅ No hace nada. Solo valida y marca como perfecto.</p>
         </div>
+      </div>
+
+      <div style="margin-top: 3rem; background: rgba(99, 102, 241, 0.1); padding: 2rem; border-radius: 12px; border-left: 4px solid #6366f1;">
+        <h3 style="color: #6366f1; margin-bottom: 1rem;">🔍 Flujo de Decisión Automático</h3>
+        <div style="font-family: 'Consolas', monospace; font-size: 0.9rem; line-height: 2; color: #e2e8f0;">
+          <div style="margin-bottom: 0.5rem;">
+            <span style="color: #94a3b8;">¿La ruta tiene info válida?</span>
+          </div>
+          <div style="margin-left: 2rem;">
+            <span style="color: #4ade80;">├─ SÍ</span> → <span style="color: #94a3b8;">¿Los tags tienen info válida?</span>
+            <div style="margin-left: 4rem;">
+              <span style="color: #4ade80;">├─ SÍ</span> → <span style="color: #f8fafc;">Caso D (Perfecto)</span><br>
+              <span style="color: #ef4444;">└─ NO</span> → <span style="color: #4ade80;">Caso A (Ruta → Tags)</span>
+            </div>
+            <span style="color: #ef4444;">└─ NO</span> → <span style="color: #94a3b8;">¿Los tags tienen info válida?</span>
+            <div style="margin-left: 4rem;">
+              <span style="color: #4ade80;">├─ SÍ</span> → <span style="color: #60a5fa;">Caso B (Tags → Ruta)</span><br>
+              <span style="color: #ef4444;">└─ NO</span> → <span style="color: #fbbf24;">Caso C (Búsqueda externa)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 2rem; background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: 12px; border-left: 4px solid #ef4444;">
+        <h4 style="color: #ef4444; margin-bottom: 0.5rem;">⚠️ Validación de Información</h4>
+        <p style="font-size: 0.9rem; margin-bottom: 0.5rem;">El sistema considera información <strong>válida</strong> cuando:</p>
+        <ul style="font-size: 0.85rem; padding-left: 1.5rem;">
+          <li>✅ No está vacía</li>
+          <li>✅ No es "Unknown", "Untitled", "Track XX"</li>
+          <li>✅ No es "Artista Desconocido" o similar</li>
+          <li>✅ Tiene contenido significativo</li>
+        </ul>
       </div>
     </section>
 

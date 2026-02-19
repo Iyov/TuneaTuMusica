@@ -21,16 +21,72 @@
 
 ---
 
-## 📁 Inteligencia de Rutas
+## 📁 Inteligencia de Extracción de Rutas
 
-La lógica de extracción ha sido refinada para interpretar tu estructura de carpetas de forma humana:
+La lógica de extracción ha sido refinada para interpretar tu estructura de carpetas de forma inteligente y precisa:
 
-1.  🎹 **Banda / Artista**: Localizado en la carpeta **N-2** (dos niveles arriba del archivo).
-2.  💿 **Disco & Año**: Extraídos de la carpeta **N-1** (padre directo). Soporta el patrón `(YYYY) Nombre del Álbum`.
-3.  🎵 **Pista & Título**: Parseados dinámicamente desde el nombre del archivo, eliminando el "ruido" de caracteres especiales.
+### Reglas de Extracción:
 
-**Estructura Ideal:**
-`Musica/Metal/Caliban/(2006) The Undying Darkness/01 - Intro.mp3`
+1. 🎹 **Banda / Artista**: Localizado en la carpeta **N-2** (dos niveles arriba del archivo)
+   - Se normaliza a Title Case (primera letra de cada palabra en mayúscula)
+   - Ejemplo: `caliban` → `Caliban`
+
+2. 💿 **Disco & Año**: Extraídos de la carpeta **N-1** (padre directo)
+   - Soporta el patrón `(YYYY) Nombre del Álbum`
+   - El año debe estar entre paréntesis al inicio
+   - El nombre del álbum se normaliza a Title Case
+   - Ejemplo: `(2006) the undying darkness` → Año: `2006`, Álbum: `The Undying Darkness`
+
+3. 🎵 **Pista & Título**: Parseados dinámicamente desde el nombre del archivo
+   - Soporta múltiples formatos: `XX-Titulo`, `XX - Titulo`, `XX_Titulo`, `XX.Titulo`
+   - El número de pista se normaliza a dos dígitos (formato XX)
+   - El título se normaliza a Title Case
+   - Se eliminan caracteres especiales y guiones bajos
+   - Ejemplo: `02-No Lo Podras Sostener.mp3` → Track: `02`, Título: `No Lo Podras Sostener`
+
+### Estructura Ideal:
+
+```
+Musica/
+└── Metal/
+    └── Caliban/                                    ← N-2: Artista
+        └── (2006) The Undying Darkness/            ← N-1: (Año) Álbum
+            ├── 01 - Intro.mp3                      ← Archivo: XX - Título
+            ├── 02 - I Rape Myself.mp3
+            └── 03 - Song About Killing.mp3
+```
+
+### Variaciones Soportadas:
+
+El sistema es inteligente y reconoce múltiples formatos de nombres de archivo:
+
+| Formato Original | Track | Título Extraído |
+|-----------------|-------|-----------------|
+| `02-No Lo Podras Sostener.mp3` | `02` | `No Lo Podras Sostener` |
+| `07 - Track 07.mp3` | `07` | `Track 07` |
+| `05-bad_dream-ube.mp3` | `05` | `Bad Dream Ube` |
+| `11 - one more lie.mp3` | `11` | `One More Lie` |
+| `10-Track-10.mp3` | `10` | `Track 10` |
+
+### Casos Especiales:
+
+**Álbumes con paréntesis en el nombre:**
+```
+(2005) Caliban & H.S.B. - The Split program 2 (Caliban Tracks)
+```
+- Año: `2005` (primer paréntesis)
+- Álbum: `Caliban & H.S.B. - The Split Program 2 (Caliban Tracks)` (todo lo demás)
+
+**Nombres de archivo sin número de track:**
+```
+intro.mp3 → Se asigna track 00 y título "Intro"
+```
+
+**Carpetas sin año:**
+```
+Back To School/ → Año: 0000, Álbum: "Back To School"
+```
+
 ---
 
 ## ⚡ Lógica de Decisión: Los 4 Casos de Clasificación
@@ -53,40 +109,171 @@ El nombre está ordenado, los Tags coincidan y la carpeta es la correcta. Solo s
 
 ## 📐 Estándar de Nomenclatura Estricta
 
-Independientemente del caso detectado, el resultado final siempre será:
+TuneaTuMusica garantiza que el 100% de tu biblioteca siga un estándar profesional de nomenclatura:
 
-`/[Nombre Banda]/([Año]) [Nombre del Disco]/[NumTrack] - [Nombre Canción].[Ext]`
+```
+/[Nombre Banda]/([Año]) [Nombre del Disco]/[NumTrack] - [Nombre Canción].[Ext]
+```
 
-### Especificación:
-- **Banda (N-2)**: Carpeta abuela en *Title Case*.
-- **Disco (N-1)**: Carpeta padre como `(AAAA) Titulo`.
-- **Pista**: Formato `XX - `.
-- **Género**: Forzado globalmente a `Metal`.
+### Especificación Detallada:
+
+| Componente | Ubicación | Formato | Ejemplo |
+|------------|-----------|---------|---------|
+| **Nombre Banda** | Carpeta N-2 (dos niveles arriba) | Title Case | `Caliban` |
+| **Año** | Carpeta N-1 (dentro de paréntesis) | AAAA | `2006` |
+| **Nombre del Disco** | Carpeta N-1 (después del paréntesis) | Title Case | `The Undying Darkness` |
+| **Número de Track** | Inicio del nombre de archivo | XX (dos dígitos) | `02` |
+| **Nombre Canción** | Después de "XX - " | Title Case | `I Rape Myself` |
+| **Extensión** | Final del archivo | .mp3, .flac, etc. | `.mp3` |
+
+### Ejemplos de Transformación:
+
+**Ejemplo 1: Caso con guiones**
+```
+Antes: test/2x/(2002) Pateando Craneos/02-No Lo Podras Sostener.mp3
+Después: 2x/(2002) Pateando Craneos/02 - No Lo Podras Sostener.mp3
+```
+
+**Ejemplo 2: Caso con espacios**
+```
+Antes: test/BTS Discos/(2004) Back To School/07 - Track 07.mp3
+Después: Bts Discos/(2004) Back To School/07 - Track 07.mp3
+```
+
+**Ejemplo 3: Caso con guiones bajos**
+```
+Antes: test/Caliban/(2003) Shadow Hearts/05-bad_dream-ube.mp3
+Después: Caliban/(2003) Shadow Hearts/05 - Bad Dream Ube.mp3
+```
+
+**Ejemplo 4: Caso con paréntesis en el nombre del disco**
+```
+Antes: test/Caliban/(2005) Caliban & H.S.B. - The Split program 2 (Caliban Tracks)/11 - one more lie.mp3
+Después: Caliban/(2005) Caliban & H.S.B. - The Split Program 2 (Caliban Tracks)/11 - One More Lie.mp3
+```
+
+### Reglas de Normalización:
+
+1. **Title Case**: Primera letra de cada palabra en mayúscula
+2. **Separador estándar**: Siempre "XX - " (número, espacio, guión, espacio)
+3. **Sin caracteres especiales**: Se eliminan: `\ / : * ? " < > | ,`
+4. **Guiones bajos**: Se convierten en espacios
+5. **Género**: Siempre se establece como "Metal" (simplificado según requerimiento)
 
 ---
 
-## 📊 La Inteligencia Detrás: Los 4 Casos de Clasificación
+## 📊 Los 4 Casos de Clasificación Inteligente
 
-TuneaTuMusica no "adivina", aplica lógica de ingeniería para resolver el estado de cada archivo. Aquí explicamos cómo decide qué hacer:
+TuneaTuMusica no "adivina", aplica lógica de ingeniería para resolver el estado de cada archivo. El sistema analiza cada canción y determina automáticamente qué caso aplicar:
 
-### 🟢 Caso A: "La Carpeta manda"
-*   **Diagnóstico**: El nombre del archivo o su ubicación son perfectos, pero los "Tags" internos están vacíos o dicen "Desconocido".
-    - *Ejemplo*: `Caliban/(2006) The Undying Darkness/01 - Intro.mp3` (pero el archivo por dentro no tiene info).
-*   **Acción**: El motor extrae la info de la ruta y **escribe los Tags** internos.
+### 🟢 Caso A: "La Ruta Manda" (Ruta → Tags)
 
-### 🔵 Caso B: "Los Tags mandan"
-*   **Diagnóstico**: El archivo tiene los metadatos internos (Artista, Título) correctos, pero el nombre del archivo es un desastre.
-    - *Ejemplo*: `asdf_123_descarga.mp3` (pero al abrirlo dice "Metallica - Enter Sandman").
-*   **Acción**: El motor usa los Tags para **renombrar el archivo** al estándar: `01 - Metallica - Enter Sandman.mp3`.
+**Diagnóstico**: El nombre del archivo y su ubicación son correctos, pero los Tags internos están vacíos o incorrectos.
 
-### 🟡 Caso C: "Búsqueda de Identidad" (Fingerprinting/IA)
-*   **Diagnóstico**: Ni el nombre del archivo ni los Tags internos sirven. El archivo es un completo desconocido.
-    - *Ejemplo*: `track01.mp3` y sin metadatos.
-*   **Acción**: El motor "escucha" el audio (**AcoustID**) o le pregunta a la **IA** para descubrir quién es, y luego **arregla tanto Tags como Nombre**.
+**Ejemplo**:
+```
+Archivo: Caliban/(2006) The Undying Darkness/01 - Intro.mp3
+Tags internos: [Vacíos o "Unknown"]
+```
 
-### ⚪ Caso D: "Estado Perfecto"
-*   **Diagnóstico**: El nombre está ordenado y los Tags coinciden perfectamente.
-*   **Acción**: No hace nada. Solo te informa que el archivo está **100% Correcto**. ¡Misión cumplida!
+**Acción**: El motor extrae la información de la ruta y **escribe los Tags** internos (ID3v1 e ID3v2).
+
+**Resultado**:
+- Title: `Intro`
+- Artist: `Caliban`
+- Album: `The Undying Darkness`
+- Year: `2006`
+- Genre: `Metal`
+- Track: `01`
+
+---
+
+### 🔵 Caso B: "Los Tags Mandan" (Tags → Ruta)
+
+**Diagnóstico**: El archivo tiene metadatos internos correctos, pero el nombre del archivo o la ruta son un desastre.
+
+**Ejemplo**:
+```
+Archivo: test/BTS Discos/(2004) Back To School/08 - Track 08.mp3
+Tags internos: Artist="Back To School", Title="Graduation Day", Album="BTS Compilation"
+```
+
+**Acción**: El motor usa los Tags para **renombrar y mover el archivo** a la estructura estándar.
+
+**Resultado**:
+```
+Nuevo archivo: Back To School/(2004) Bts Compilation/08 - Graduation Day.mp3
+```
+
+---
+
+### 🟡 Caso C: "Búsqueda de Identidad" (Internet/IA → Todo)
+
+**Diagnóstico**: Ni la ruta ni los Tags tienen información válida. El archivo es un completo desconocido.
+
+**Ejemplo**:
+```
+Archivo: test/Caliban/(2007) The Awakening/10-Track-10.mp3
+Tags internos: [Vacíos o "Track 10"]
+```
+
+**Acción**: El motor activa dos sistemas de búsqueda en cascada:
+
+1. **AcoustID + MusicBrainz**: "Escucha" el audio mediante fingerprinting acústico
+2. **IA (GPT-4o-mini)**: Si el fingerprinting falla, la IA analiza el contexto
+
+**Resultado**: Identifica la canción real y actualiza tanto el nombre del archivo como los Tags.
+
+**Fuentes de búsqueda**:
+- 🎵 **AcoustID**: Base de datos de huellas digitales de audio
+- 🎼 **MusicBrainz**: Enciclopedia musical abierta
+- 🤖 **OpenAI GPT-4o-mini**: Análisis inteligente de contexto
+
+---
+
+### ⚪ Caso D: "Estado Perfecto" (Validación)
+
+**Diagnóstico**: El nombre del archivo está ordenado, los Tags coinciden perfectamente y la estructura de carpetas es correcta.
+
+**Ejemplo**:
+```
+Archivo: Caliban/(2009) Say Hello To The Tragedy/08 - The Denegation Of Humanity.mp3
+Tags: Todos correctos y coinciden con la ruta
+```
+
+**Acción**: **No hace nada**. Solo valida y marca como ✅ **100% Correcto**.
+
+**Resultado**: El archivo se reporta como "Sin cambios" - ¡Misión cumplida!
+
+---
+
+## 🔍 Cómo Funciona el Análisis
+
+El sistema recorre todas las subcarpetas de tu biblioteca musical y para cada archivo:
+
+1. **Escaneo**: Lee los Tags actuales (ID3v1 e ID3v2)
+2. **Análisis de Ruta**: Extrae información de la estructura de carpetas
+3. **Clasificación**: Determina automáticamente el caso (A, B, C o D)
+4. **Acción**: Aplica la solución correspondiente
+5. **Reporte**: Documenta todos los cambios en CSV y Markdown
+
+### Flujo de Decisión:
+
+```
+¿La ruta tiene info válida? ─┬─ SÍ ─┬─ ¿Los tags tienen info válida? ─┬─ SÍ → Caso D
+                              │      └─ NO → Caso A
+                              │
+                              └─ NO ─┬─ ¿Los tags tienen info válida? ─┬─ SÍ → Caso B
+                                     └─ NO → Caso C (búsqueda externa)
+```
+
+### Validación de Información:
+
+El sistema considera información **válida** cuando:
+- ✅ No está vacía
+- ✅ No es "Unknown", "Untitled", "Track XX"
+- ✅ No es "Artista Desconocido" o similar
+- ✅ Tiene contenido significativo
 
 ---
 

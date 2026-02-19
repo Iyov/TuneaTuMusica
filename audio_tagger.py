@@ -633,93 +633,158 @@ class AudioTagger:
     
     def procesar_archivo(self, archivo: Path, directorio_raiz: Path) -> ResultadoActualizacion:
         """Procesa un archivo integrando los Casos A-D con la Nomenclatura Estricta.
-        Garantiza la estructura: /Banda/(Año) Disco/NN - Titulo.ext
+        
+        CASOS DE ANÁLISIS:
+        - Caso A: El archivo SI tiene datos en la ruta pero NO tiene Tags completos
+        - Caso B: El archivo NO tiene datos en la ruta pero SI tiene Tags completos
+        - Caso C: El archivo NO tiene datos ni en ruta ni en Tags (requiere búsqueda externa)
+        - Caso D: El archivo SI tiene datos completos tanto en ruta como en Tags
+        
+        NOMENCLATURA ESTRICTA:
+        /[Nombre Banda]/([Año]) [Nombre del Disco]/[NumTrack] - [Nombre Canción].[Ext]
+        
+        Donde:
+        - Nombre Banda: Dos carpetas anteriores (N-2), Title Case
+        - Año: Una carpeta anterior (N-1), dentro del primer paréntesis, formato AAAA
+        - Nombre del Disco: Una carpeta anterior (N-1), después del paréntesis, Title Case
+        - NumTrack: Dos dígitos al inicio del nombre, formato XX
+        - Nombre Canción: Después de "XX - ", Title Case
         """
         def es_valido(v: Optional[str]) -> bool:
+            """Verifica si un valor es válido (no vacío, no 'unknown', etc.)"""
             if not v: return False
             lv = v.lower().strip()
-            return lv not in ['', 'unknown', 'untitled', 'track', 'artista desconocido', 'desconocido']
+            invalidos = ['', 'unknown', 'untitled', 'track', 'artista desconocido', 'desconocido', 
+                        'track 01', 'track 02', 'track 03', 'track 04', 'track 05', 
+                        'track 06', 'track 07', 'track 08', 'track 09', 'track 10']
+            # Verificar si es solo "track XX"
+            if lv.startswith('track') and len(lv.split()) == 2:
+                return False
+            return lv not in invalidos
 
         def to_title_case(text: str) -> str:
+            """Convierte texto a Title Case (primera letra de cada palabra en mayúscula)"""
             if not text: return text
-            return ' '.join(word.capitalize() for word in text.replace('_', ' ').split())
+            # Eliminar comas y guiones bajos
+            clean_text = text.replace(',', '').replace('_', ' ')
+            return ' '.join(word.capitalize() for word in clean_text.split())
 
         def sanitize(name: str) -> str:
+            """Elimina caracteres no válidos para nombres de archivo"""
             import re
             return re.sub(r'[\\/:*?"<>|,]', '', name).strip()
 
-        # 1. Análisis Inicial
+        # 1. ANÁLISIS INICIAL: Leer tags actuales y derivar info de la ruta
         tags_previos = self.leer_tags_actuales(archivo)
-        derived_path, _ = self._parse_path_info(archivo, directorio_raiz)
+        derived_path, metadata = self._parse_path_info(archivo, directorio_raiz)
 
-        # 2. Evaluación de Estados
+        # 2. EVALUACIÓN DE ESTADOS: Determinar qué información es válida
+        # La ruta tiene info válida si tiene artista Y título válidos
         path_has_info = es_valido(derived_path.artist) and es_valido(derived_path.title)
+        # Los tags tienen info válida si tienen artista Y título válidos
         tags_have_info = es_valido(tags_previos.artist) and es_valido(tags_previos.title)
 
-        # 3. Determinación de Metadatos Finales y Caso
+        # 3. DETERMINACIÓN DE CASO Y METADATOS FINALES
         caso = 'D'
         fuente = 'N/A'
+        f_artist, f_album, f_year, f_track, f_title = None, None, None, None, None
         
-        # CASO D: Todo bien (en teoría). Validamos si la estructura física es perfecta.
         if path_has_info and tags_have_info:
-            f_artist, f_album, f_year, f_track, f_title = derived_path.artist, derived_path.album, derived_path.year, derived_path.track, derived_path.title
+            # CASO D: Todo está bien, usar info de la ruta (es la fuente de verdad)
+            f_artist = derived_path.artist
+            f_album = derived_path.album
+            f_year = derived_path.year
+            f_track = derived_path.track
+            f_title = derived_path.title
             caso = 'D'
             fuente = 'Estructura'
-        
-        # CASO A: La ruta tiene la verdad, los tags no.
+            
         elif path_has_info and not tags_have_info:
-            f_artist, f_album, f_year, f_track, f_title = derived_path.artist, derived_path.album, derived_path.year, derived_path.track, derived_path.title
+            # CASO A: La ruta tiene la verdad, actualizar tags
+            f_artist = derived_path.artist
+            f_album = derived_path.album
+            f_year = derived_path.year
+            f_track = derived_path.track
+            f_title = derived_path.title
             caso = 'A'
             fuente = 'Ruta'
             
-        # CASO B: Los tags tienen la verdad, la ruta no.
         elif not path_has_info and tags_have_info:
-            f_artist, f_album, f_year, f_track, f_title = tags_previos.artist, tags_previos.album, tags_previos.year, tags_previos.track, tags_previos.title
+            # CASO B: Los tags tienen la verdad, actualizar nombre de archivo
+            f_artist = tags_previos.artist
+            f_album = tags_previos.album
+            f_year = tags_previos.year
+            f_track = tags_previos.track
+            f_title = tags_previos.title
             caso = 'B'
             fuente = 'Tags'
             
-        # CASO C: Nadie tiene la verdad. Buscamos fuera.
         else:
+            # CASO C: Nadie tiene la verdad, buscar externamente
             caso = 'C'
+            
+            # Intentar con fingerprinting primero
             datos_web = self.identificar_con_fingerprint(archivo)
-            if datos_web:
-                f_artist = datos_web.get('artist') or derived_path.artist or tags_previos.artist
-                f_album = datos_web.get('album') or derived_path.album or tags_previos.album
-                f_year = datos_web.get('year') or derived_path.year or tags_previos.year
-                f_title = datos_web.get('title') or derived_path.title or tags_previos.title
+            if datos_web and es_valido(datos_web.get('artist')) and es_valido(datos_web.get('title')):
+                f_artist = datos_web.get('artist')
+                f_album = datos_web.get('album')
+                f_year = datos_web.get('year')
+                f_title = datos_web.get('title')
                 f_track = datos_web.get('track') or derived_path.track or tags_previos.track
-                fuente = 'Internet'
+                fuente = 'Internet (AcoustID)'
+                
+            # Si no funcionó, intentar con IA
             elif self.ia_tagger.enabled:
                 datos_ia = self.ia_tagger.inferir_desde_nombre(archivo.name, tags_previos)
-                if datos_ia:
-                    f_artist, f_album, f_year, f_track, f_title = datos_ia.artist, datos_ia.album, datos_ia.year, datos_ia.track, datos_ia.title
+                if datos_ia and es_valido(datos_ia.artist) and es_valido(datos_ia.title):
+                    f_artist = datos_ia.artist
+                    f_album = datos_ia.album
+                    f_year = datos_ia.year
+                    f_track = datos_ia.track or derived_path.track or tags_previos.track
+                    f_title = datos_ia.title
                     fuente = 'IA'
                 else:
-                    f_artist, f_album, f_year, f_track, f_title = derived_path.artist, derived_path.album, derived_path.year, derived_path.track, derived_path.title
-                    fuente = 'Inferencia Fallida'
+                    # Fallback: usar lo que tengamos de la ruta aunque no sea perfecto
+                    f_artist = derived_path.artist or tags_previos.artist
+                    f_album = derived_path.album or tags_previos.album
+                    f_year = derived_path.year or tags_previos.year
+                    f_track = derived_path.track or tags_previos.track
+                    f_title = derived_path.title or tags_previos.title
+                    fuente = 'Inferencia Parcial'
             else:
-                f_artist, f_album, f_year, f_track, f_title = derived_path.artist, derived_path.album, derived_path.year, derived_path.track, derived_path.title
-                fuente = 'N/A'
+                # Sin IA, usar lo que tengamos
+                f_artist = derived_path.artist or tags_previos.artist
+                f_album = derived_path.album or tags_previos.album
+                f_year = derived_path.year or tags_previos.year
+                f_track = derived_path.track or tags_previos.track
+                f_title = derived_path.title or tags_previos.title
+                fuente = 'Inferencia Parcial'
 
-        # 4. Normalización Estricta
-        f_artist = to_title_case(f_artist) or "Otros"
-        f_album = to_title_case(f_album) or "Otros"
-        f_title = to_title_case(f_title) or archive.stem if 'archive' in locals() else to_title_case(archivo.stem)
-        f_year = f_year or "0000"
-        f_track = (f_track or "00").zfill(2)
-        f_genre = "Metal"
+        # 4. NORMALIZACIÓN ESTRICTA según especificación
+        f_artist = to_title_case(f_artist) if f_artist else "Otros"
+        f_album = to_title_case(f_album) if f_album else "Otros"
+        f_title = to_title_case(f_title) if f_title else to_title_case(archivo.stem)
+        f_year = f_year if f_year else "0000"
+        f_track = (f_track or "00").zfill(2)  # Asegurar formato XX
+        f_genre = "Metal"  # Según requerimiento: siempre Metal
 
+        # Crear objeto con metadatos finales
         nuevos = AudioTags(
-            title=f_title, artist=f_artist, album=f_album,
-            year=f_year, genre=f_genre, track=f_track
+            title=f_title,
+            artist=f_artist,
+            album=f_album,
+            year=f_year,
+            genre=f_genre,
+            track=f_track
         )
 
-        # 5. Definición de Destino
+        # 5. DEFINICIÓN DE RUTA DESTINO según nomenclatura estricta
+        # /[Nombre Banda]/([Año]) [Nombre del Disco]/[NumTrack] - [Nombre Canción].[Ext]
         sub_path = Path(sanitize(f_artist)) / f"({f_year}) {sanitize(f_album)}"
         nombre_final = f"{f_track} - {sanitize(f_title)}{archivo.suffix}"
         path_destino = directorio_raiz / sub_path / nombre_final
 
-        # 6. Evaluación Real de Cambios
+        # 6. EVALUACIÓN DE CAMBIOS NECESARIOS
         tags_distintos = (
             tags_previos.title != nuevos.title or
             tags_previos.artist != nuevos.artist or
@@ -728,49 +793,70 @@ class AudioTagger:
             tags_previos.track != nuevos.track or
             tags_previos.genre != nuevos.genre
         )
-        ruta_distinta = str(archivo.absolute()) != str(path_destino.absolute())
+        
+        ruta_distinta = str(archivo.resolve()) != str(path_destino.resolve())
 
+        # Si no hay cambios, retornar sin modificar
         if not tags_distintos and not ruta_distinta:
             return ResultadoActualizacion(
-                archivo=str(archivo), estado="Sin cambios",
-                datos_previos=tags_previos, datos_nuevos=nuevos,
-                fuente="N/A", caso='D', mensaje='Estructura y tags perfectos'
+                archivo=str(archivo),
+                estado="Sin cambios",
+                datos_previos=tags_previos,
+                datos_nuevos=nuevos,
+                fuente="N/A",
+                caso='D',
+                mensaje='Estructura y tags perfectos'
             )
 
-        # 7. Ejecución de Cambios
+        # 7. EJECUCIÓN DE CAMBIOS
         try:
-            # Backup
+            # Crear backup si está habilitado
             if self.hacer_backup and (tags_distintos or ruta_distinta):
                 if self.backup_manager is None:
                     self.backup_manager = BackupManager(directorio_raiz)
                 self.backup_manager.crear_backup(archivo)
 
-            # Escribir Tags
+            # Escribir tags si son distintos
             ok_tags = True
             if tags_distintos:
                 ok_tags = self.escribir_tags(archivo, nuevos)
+                if not ok_tags:
+                    logger.warning(f"No se pudieron escribir tags en {archivo.name}")
 
-            # Mover Archivo
+            # Mover/renombrar archivo si la ruta es distinta
+            mensaje = ""
             if ruta_distinta:
                 if not getattr(self, 'dry_run', False):
+                    # Crear directorio destino si no existe
                     path_destino.parent.mkdir(parents=True, exist_ok=True)
+                    # Mover archivo
                     archivo.rename(path_destino)
-                mensaje = f"Movido a {sub_path}"
+                    mensaje = f"Movido a {sub_path / nombre_final}"
+                else:
+                    mensaje = f"[DRY-RUN] Se movería a {sub_path / nombre_final}"
             else:
-                mensaje = "Tags actualizados en misma ruta"
+                mensaje = "Tags actualizados en misma ubicación"
 
             return ResultadoActualizacion(
                 archivo=str(path_destino if ruta_distinta else archivo),
                 estado="Actualizado" if (tags_distintos or ruta_distinta) else "Sin cambios",
-                datos_previos=tags_previos, datos_nuevos=nuevos,
-                fuente=fuente, caso=caso, mensaje=mensaje
+                datos_previos=tags_previos,
+                datos_nuevos=nuevos,
+                fuente=fuente,
+                caso=caso,
+                mensaje=mensaje
             )
 
         except Exception as e:
+            logger.error(f"Error procesando {archivo}: {e}")
             return ResultadoActualizacion(
-                archivo=str(archivo), estado="Error",
-                datos_previos=tags_previos, datos_nuevos=nuevos,
-                fuente=fuente, mensaje=f"Error: {e}"
+                archivo=str(archivo),
+                estado="Error",
+                datos_previos=tags_previos,
+                datos_nuevos=nuevos,
+                fuente=fuente,
+                caso=caso,
+                mensaje=f"Error: {e}"
             )
     
     def procesar_directorio(self, directorio: str, max_workers: int = 4):
