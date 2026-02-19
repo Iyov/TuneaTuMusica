@@ -132,11 +132,38 @@
     </section>
 
     <section class="box">
-      <h2>Comenzar Ahora</h2>
-      <p>Ejecuta el explorador o usa la terminal para una limpieza masiva:</p>
-      <pre><code id="cli-cmd">python audio_tagger.py --dir "tu/musica" --workers 4 --dry-run</code><button class="copy-btn" onclick="copyToClipboard('cli-cmd')">Copiar</button></pre>
-      <p>O simplemente lanza la GUI:</p>
-      <pre><code>python gui.py</code></pre>
+      <h2 style="margin-bottom: 2rem;">🚀 Comenzar Ahora</h2>
+      
+      <div style="margin-bottom: 2.5rem;">
+        <h3>1. Descargar el Proyecto</h3>
+        <p>Clona el repositorio oficial desde GitHub para obtener la última versión:</p>
+        <pre><code id="git-clone">git clone https://github.com/Iyov/CachaTuMusica.git
+cd CachaTuMusica</code><button class="copy-btn" onclick="copyToClipboard('git-clone')">Copiar</button></pre>
+      </div>
+
+      <div style="margin-bottom: 2.5rem;">
+        <h3>2. Instalar Dependencias</h3>
+        <p>Asegúrate de tener Python instalado y ejecuta este comando para instalar las librerías necesarias:</p>
+        <pre><code id="pip-install">pip install -r requirements.txt</code><button class="copy-btn" onclick="copyToClipboard('pip-install')">Copiar</button></pre>
+      </div>
+
+      <div style="margin-bottom: 2.5rem;">
+        <h3>3. Ejecución Local</h3>
+        <p>Tienes dos formas de usar CachaTuMusica dependiendo de tu preferencia:</p>
+        
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+          <div style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">💻 Modo Terminal (CLI)</h4>
+            <p style="font-size: 0.9rem; margin-bottom: 1rem;">Ideal para procesar miles de archivos rápidamente.</p>
+            <pre><code id="cli-run">python audio_tagger.py --dir "tu/musica"</code><button class="copy-btn" onclick="copyToClipboard('cli-run')">Copiar</button></pre>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--glass-border);">
+            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">🖥️ Modo Visual (GUI)</h4>
+            <p style="font-size: 0.9rem; margin-bottom: 1rem;">La interfaz moderna para un control total e intuitivo.</p>
+            <pre><code id="gui-run">python gui.py</code><button class="copy-btn" onclick="copyToClipboard('gui-run')">Copiar</button></pre>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
