@@ -3,17 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TuneaTuMusica Web — No-Install Edition</title>
-  <meta name="description" content="Organiza tu biblioteca musical directamente desde el navegador. Sin instalación, 100% privado y local." />
-  <meta name="keywords" content="tunea tu musica, web edition, mp3 tagger, flac tagger, sin instalacion, privacidad musical" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   
-  <!-- Open Graph -->
-  <meta property="og:title" content="TuneaTuMusica Web — No-Install Edition" />
-  <meta property="og:description" content="Limpia y organiza tu música localmente en el navegador con total privacidad." />
-  <meta property="og:image" content="img/TuneaTuMusica_Logo_SF.png" />
+  <!-- Primary SEO Tags -->
+  <title>TuneaTuMusica Web - Organiza tu Música Online Sin Instalación | 100% Privado</title>
+  <meta name="title" content="TuneaTuMusica Web - Organiza tu Música Online Sin Instalación | 100% Privado" />
+  <meta name="description" content="Versión web de TuneaTuMusica. Organiza y renombra tu música directamente en el navegador sin instalar nada. 100% privado, tus archivos nunca salen de tu computadora. Compatible con MP3, FLAC y más." />
+  <meta name="keywords" content="organizar música online, mp3 tagger web, renombrar música navegador, ID3 tags online, sin instalación, privacidad musical, editor metadatos web, TuneaTuMusica web, flac tagger online" />
+  <meta name="author" content="Iyov" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://iyov.github.io/TuneaTuMusica/web.html" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
   <meta property="og:url" content="https://iyov.github.io/TuneaTuMusica/web.html" />
+  <meta property="og:site_name" content="TuneaTuMusica Web Edition" />
+  <meta property="og:title" content="TuneaTuMusica Web - Organiza tu Música Sin Instalación" />
+  <meta property="og:description" content="Organiza tu biblioteca musical directamente desde el navegador. Sin instalación, 100% privado y local. Tus archivos nunca salen de tu computadora." />
+  <meta property="og:image" content="https://iyov.github.io/TuneaTuMusica/img/TuneaTuMusica_Logo_SF.png" />
+  <meta property="og:image:alt" content="TuneaTuMusica Web Edition - Organiza música en el navegador" />
+  <meta property="og:locale" content="es_ES" />
   
-  <link rel="stylesheet" href="css/web.css?v=2026-02-19_2" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://iyov.github.io/TuneaTuMusica/web.html" />
+  <meta name="twitter:title" content="TuneaTuMusica Web - Organiza Música Sin Instalación" />
+  <meta name="twitter:description" content="Versión web sin instalación. Organiza tu música directamente en el navegador con total privacidad." />
+  <meta name="twitter:image" content="https://iyov.github.io/TuneaTuMusica/img/TuneaTuMusica_Logo_SF.png" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "TuneaTuMusica Web Edition",
+    "url": "https://iyov.github.io/TuneaTuMusica/web.html",
+    "description": "Versión web de TuneaTuMusica para organizar música directamente en el navegador sin instalación. 100% privado y local.",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Web Browser",
+    "browserRequirements": "Requires JavaScript, File System Access API (Chrome, Edge)",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Iyov"
+    },
+    "isAccessibleForFree": true,
+    "featureList": [
+      "Sin instalación requerida",
+      "100% privado - archivos locales",
+      "Renombrado de archivos MP3 y FLAC",
+      "Actualización de metadatos ID3",
+      "Modo simulación (Dry Run)",
+      "Reportes descargables en CSV"
+    ]
+  }
+  </script>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="img/TuneaTuMusica_Logo_SF.png" />
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#667eea" />
+  
+  <link rel="stylesheet" href="css/web.css?v=2026-02-19_3" />
+  <link rel="stylesheet" href="css/web.min.css?v=2026-02-19_3" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/music-metadata-browser@2.5.11/dist/index.min.js"></script>
   <script src="https://unpkg.com/browser-id3-writer@6.3.1/dist/browser-id3-writer.mjs" type="module"></script>
@@ -23,14 +81,14 @@
     <!-- Header -->
     <header class="flex flex-col md:flex-row justify-between items-center gap-6">
       <div class="flex items-center gap-6">
-        <img src="img/TuneaTuMusica_Logo_SF.png?v=2026-02-19_1" alt="Logo" class="w-32 h-auto" />
+        <img src="img/TuneaTuMusica_Logo_SF.png?v=2026-02-19_1" alt="TuneaTuMusica - Software para organizar música" width="150" height="90" class="w-32 h-auto" />
         <div class="text-center md:text-left">
           <h1 class="text-4xl font-bold text-white tracking-tight">TuneaTuMusica <span class="text-indigo-400">Web</span></h1>
-          <p class="text-slate-400 font-medium">Edición Sin Instalación • Privacidad Local</p>
+          <p class="text-slate-400 font-medium">Organiza tu Biblioteca Musical Automáticamente</p>
         </div>
       </div>
       <div class="flex gap-3">
-        <a href="index.html" class="glass-button px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+        <a href="index.html" class="glass-button px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2" aria-label="Volver a la página principal">
           ← Volver al Inicio
         </a>
         <span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest flex items-center">
@@ -113,276 +171,18 @@
     </div>
   </div>
 
-  <script type="module">
-    import { ID3Writer } from 'https://unpkg.com/browser-id3-writer@6.3.1/dist/browser-id3-writer.mjs';
+  <!-- Scroll to Top Button -->
+  <button id="scrollToTop" class="scroll-to-top" aria-label="Volver arriba" title="Volver arriba">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
 
-    let directoryHandle = null;
-    let files = [];
-    const btnSelect = document.getElementById('btnSelect');
-    const btnProcess = document.getElementById('btnProcess');
-    const btnDownloadReport = document.getElementById('btnDownloadReport');
-    const chkDryRun = document.getElementById('chkDryRun');
-    const logContent = document.getElementById('logContent');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    const countUpdated = document.getElementById('countUpdated');
-    const countError = document.getElementById('countError');
-    
-    let reportData = []; // Para el CSV
+  <style>
 
-    const log = (msg, type = 'info') => {
-      const div = document.createElement('div');
-      div.className = `p-2 rounded border-l-2 bg-white/5 ${type === 'success' ? 'border-emerald-500 text-emerald-400' : type === 'error' ? 'border-red-500 text-red-500' : 'border-slate-500 text-slate-400'}`;
-      div.innerHTML = `<span class="opacity-50">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
-      logContent.prepend(div);
-    };
+  </style>
 
-    // Verificación de Compatibilidad y Seguridad
-    if (!window.showDirectoryPicker) {
-      log("❌ El 'File System Access API' no está disponible.", "error");
-      log("👉 Esto ocurre si usas un navegador no compatible (usa Chrome/Edge) o si abres el archivo como 'file://'.", "warning");
-      log("💡 SOLUCIÓN: Ejecuta un servidor local (ej: 'npx serve .') o entra vía HTTPS.", "info");
-      btnSelect.disabled = true;
-      btnSelect.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-      log("🚀 TuneaTuMusica Web listo. Selecciona tu carpeta de música local.", "success");
-      console.log("File System Access API detected successfully.");
-    }
+  <script type="module" src="js/web.js?v=2026-02-19_1"></script>
 
-    // Capture global errors for debugging
-    window.addEventListener('error', (e) => {
-      log(`🐞 Error detectado: ${e.message}`, 'error');
-      console.error("Global error caught:", e);
-    });
-
-    btnSelect.onclick = async () => {
-      console.log("Button 'Seleccionar Carpeta' clicked.");
-      try {
-        if (!window.showDirectoryPicker) throw new Error("API not supported in this context");
-        
-        directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-        console.log("Directory handle obtained:", directoryHandle.name);
-        
-        log(`📂 Escaneando carpeta: ${directoryHandle.name}...`, 'info');
-        document.getElementById('folderInfo').classList.remove('hidden');
-        document.getElementById('folderName').innerText = directoryHandle.name;
-        
-        files = [];
-        
-        // Recursive scan helper
-        async function scanDirectory(handle, pathParts = []) {
-          for await (const entry of handle.values()) {
-            if (entry.kind === 'file' && /\.(mp3|flac)$/i.test(entry.name)) {
-              files.push({handle: entry, pathParts: pathParts});
-              if (files.length % 10 === 0) {
-                document.getElementById('countUpdated').innerText = files.length;
-              }
-            } else if (entry.kind === 'directory') {
-              await scanDirectory(entry, [...pathParts, entry.name]);
-            }
-          }
-        }
-
-        await scanDirectory(directoryHandle);
-        
-        btnProcess.disabled = files.length === 0;
-        document.getElementById('countUpdated').innerText = files.length;
-        log(`✨ Escaneo completado. ${files.length} archivos de audio listos.`, 'success');
-        
-        if (files.length === 0) {
-          log("⚠️ No se encontraron archivos MP3 o FLAC en esta carpeta.", "warning");
-        } else {
-          log("👉 Presiona 'Tunea Tu Música' para comenzar el proceso.", "info");
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') log(err.message, 'error');
-      }
-    };
-
-    const esValido = (v) => {
-      if (!v) return false;
-      const lv = v.toLowerCase().trim();
-      return !['', 'unknown', 'untitled', 'track', 'artista desconocido', 'desconocido'].includes(lv);
-    };
-
-    const sanitize = (name) => name ? name.replace(/[\\/:*?"<>|,]/g, '').trim() : '';
-
-    const toTitleCase = (text) => {
-      if (!text) return text;
-      // Eliminar comas completamente para evitar conflictos en CSV
-      const cleanText = text.replace(/,/g, '').replace(/_/g, ' ');
-      const exceptions = ['a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'of'];
-      return cleanText.split(/\s+/).map((word, index) => {
-        if (index > 0 && exceptions.includes(word.toLowerCase())) return word.toLowerCase();
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-      }).join(' ');
-    };
-
-    btnProcess.onclick = async () => {
-      const isDryRun = chkDryRun.checked;
-      btnProcess.disabled = true;
-      btnSelect.disabled = true;
-      btnDownloadReport.disabled = true;
-      
-      // Header CSV más completo
-      reportData = [["Ruta Original", "Artista", "Álbum", "Año", "Track", "Título", "Caso", "Resultado", "Mensaje"]];
-      
-      let okCount = 0;
-      let errCount = 0;
-
-      log(isDryRun ? "🧪 Iniciando SIMULACIÓN..." : "⚡ Iniciando PROCESO REAL...", isDryRun ? 'info' : 'warning');
-
-      for (let i = 0; i < files.length; i++) {
-        const item = files[i];
-        const handle = item.handle;
-        const pathParts = item.pathParts;
-        const fullPath = [...pathParts, handle.name].join('/');
-
-        try {
-          const file = await handle.getFile();
-          
-          let tagsPrevios = { artist: null, album: null, year: null, track: null, title: null };
-          let metadataError = null;
-
-          // Intento de lectura de Metadatos (Búsqueda exhaustiva de la global)
-          try {
-            const mm = window.musicMetadata || window.mm || window.MusicMetadata;
-            if (!mm) throw new Error("Librería de metadatos no cargada (Global not found)");
-            const metadata = await mm.parseBlob(file);
-            tagsPrevios = {
-              artist: metadata.common.artist,
-              album: metadata.common.album,
-              year: metadata.common.year ? String(metadata.common.year) : null,
-              track: metadata.common.track?.no ? String(metadata.common.track.no) : null,
-              title: metadata.common.title
-            };
-          } catch (mErr) {
-            metadataError = mErr.message;
-            console.warn(`No se pudo leer metadata de ${handle.name}: ${mErr.message}`);
-          }
-
-          // Análisis de Ruta (N-1, N-2)
-          let artistDir = null, albumDir = null, yearDir = null, trackName = null, titleName = null;
-
-          if (pathParts.length >= 1) {
-            const parentName = pathParts[pathParts.length - 1];
-            const mAlbum = parentName.match(/^\((\d{4,})\)\s*(.+)$/);
-            if (mAlbum) {
-              yearDir = mAlbum[1];
-              albumDir = toTitleCase(mAlbum[2]);
-            } else {
-              albumDir = toTitleCase(parentName);
-            }
-          }
-
-          if (pathParts.length >= 2) {
-            artistDir = toTitleCase(pathParts[pathParts.length - 2]);
-          }
-
-          const stem = handle.name.replace(/\.[^/.]+$/, "");
-          const mName = stem.match(/^\s*(\d{1,2})\s*[-_.\s]+\s*(.+)$/);
-          if (mName) {
-            trackName = mName[1].padStart(2, '0');
-            titleName = toTitleCase(mName[2]);
-          } else {
-            titleName = toTitleCase(stem);
-          }
-
-          const derivedPath = { artist: artistDir, album: albumDir, year: yearDir, track: trackName, title: titleName };
-
-          // Evaluación de Casos según audio_tagger.py
-          const pathHasInfo = esValido(derivedPath.artist) && esValido(derivedPath.title);
-          const tagsHaveInfo = esValido(tagsPrevios.artist) && esValido(tagsPrevios.title);
-          
-          let f_artist, f_album, f_year, f_track, f_title, caso;
-
-          if (pathHasInfo && tagsHaveInfo) {
-            ({ artist: f_artist, album: f_album, year: f_year, track: f_track, title: f_title } = derivedPath);
-            caso = 'D';
-          } else if (pathHasInfo) {
-            ({ artist: f_artist, album: f_album, year: f_year, track: f_track, title: f_title } = derivedPath);
-            caso = 'A';
-          } else if (tagsHaveInfo) {
-            ({ artist: f_artist, album: f_album, year: f_year, track: f_track, title: f_title } = tagsPrevios);
-            caso = 'B';
-          } else {
-            // Fallback total (Caso C/E)
-            ({ artist: f_artist, album: f_album, year: f_year, track: f_track, title: f_title } = derivedPath);
-            caso = metadataError ? 'E (Error Meta)' : 'C'; 
-          }
-
-          f_artist = toTitleCase(f_artist) || "Otros";
-          f_album = toTitleCase(f_album) || "Otros";
-          f_title = toTitleCase(f_title);
-          f_year = f_year || "0000";
-          f_track = (f_track || "00").padStart(2, '0');
-
-          const extension = handle.name.split('.').pop();
-          const newName = `${f_track} - ${sanitize(f_artist)} - ${sanitize(f_title)}.${extension}`;
-
-          if (!isDryRun) {
-            if (handle.name !== newName && handle.move) {
-              await handle.move(newName);
-            }
-            if (handle.name.toLowerCase().endsWith('.mp3')) {
-              const buffer = await file.arrayBuffer();
-              const writer = new ID3Writer(buffer);
-              writer.setFrame('TPE1', [f_artist]).setFrame('TIT2', f_title).setFrame('TCON', ['Metal']).setFrame('TALB', f_album).setFrame('TDRC', f_year).setFrame('TRCK', f_track);
-              writer.addTag();
-              const writable = await handle.createWritable();
-              await writable.write(writer.arrayBuffer);
-              await writable.close();
-            }
-            log(`✅ [Caso ${caso}] ${newName}`, 'success');
-          } else {
-            log(`🔍 [Simulado] ${fullPath} ➝ ${newName}`, 'info');
-          }
-
-          reportData.push([fullPath, f_artist, f_album, f_year, f_track, f_title, caso, "OK", isDryRun ? "Simulado" : "Actualizado"]);
-          okCount++;
-          countUpdated.innerText = okCount;
-        } catch (err) {
-          log(`❌ Error en ${handle.name}: ${err.message}`, 'error');
-          reportData.push([fullPath, "-", "-", "-", "-", "-", "-", "ERROR", err.message]);
-          errCount++;
-          countError.innerText = errCount;
-        }
-        const pct = Math.round(((i + 1) / files.length) * 100);
-        progressBar.style.width = `${pct}%`;
-        progressText.innerText = `${pct}%`;
-      }
-
-      btnProcess.disabled = false;
-      btnSelect.disabled = false;
-      btnDownloadReport.disabled = false;
-      log('✨ ¡Tuning completado! Ya podís bajar el reporte.', 'success');
-    };
-
-    btnDownloadReport.onclick = () => {
-      // Usar punto y coma como separador para mayor compatibilidad en regiones de habla hispana
-      const csvContent = reportData.map(e => e.map(cell => {
-        let val = (cell || "").toString().replace(/"/g, '""');
-        // Remover comas residuales por seguridad extrema
-        val = val.replace(/,/g, '');
-        return `"${val}"`;
-      }).join(";")).join("\n");
-      // Agregar BOM (\uFEFF) para que Excel reconozca UTF-8 con tildes y ñ
-      const blob = new Blob(["\uFEFF", csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      const now = new Date();
-      const pad = (n) => String(n).padStart(2, '0');
-      const datePart = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-      const timePart = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
-      const ts = `${datePart}_${timePart}`;
-      link.setAttribute("href", url);
-      link.setAttribute("download", `Reporte_TuneaTuMusica_${ts}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      log("📥 Reporte descargado (UTF-8 OK).", "success");
-    };
-  </script>
 </body>
 </html>

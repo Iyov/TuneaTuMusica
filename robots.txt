@@ -1,0 +1,27 @@
+# robots.txt para TuneaTuMusica
+# https://iyov.github.io/TuneaTuMusica/
+
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /web.html
+Allow: /css/
+Allow: /js/
+Allow: /img/
+
+# Disallow archivos de configuración y logs
+Disallow: /logs/
+Disallow: /.git/
+Disallow: /.github/
+Disallow: /node_modules/
+Disallow: /venv/
+Disallow: /.env
+Disallow: /config.json
+Disallow: /*.py$
+Disallow: /test/
+
+# Sitemap
+Sitemap: https://iyov.github.io/TuneaTuMusica/sitemap.xml
+
+# Crawl-delay para ser amigable con los servidores
+Crawl-delay: 1

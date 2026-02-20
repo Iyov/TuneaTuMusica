@@ -1,0 +1,50 @@
+{
+  "name": "TuneaTuMusica - Organiza tu Música Automáticamente",
+  "short_name": "TuneaTuMusica",
+  "description": "Software gratuito para organizar tu biblioteca musical. Renombra archivos MP3, FLAC y actualiza metadatos ID3 con IA y fingerprinting acústico.",
+  "start_url": "/TuneaTuMusica/",
+  "scope": "/TuneaTuMusica/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#667eea",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "img/TuneaTuMusica_Logo_SF.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/TuneaTuMusica_Logo_SF.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["music", "utilities", "productivity"],
+  "lang": "es",
+  "dir": "ltr",
+  "screenshots": [
+    {
+      "src": "img/TuneaTuMusica_GUI.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "label": "Interfaz principal de TuneaTuMusica"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Web Edition",
+      "short_name": "Web",
+      "description": "Abrir versión web sin instalación",
+      "url": "/TuneaTuMusica/web.html",
+      "icons": [
+        {
+          "src": "img/TuneaTuMusica_Logo_SF.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
