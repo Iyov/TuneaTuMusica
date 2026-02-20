@@ -656,7 +656,11 @@ class AudioTagger:
             lv = v.lower().strip()
             invalidos = ['', 'unknown', 'untitled', 'track', 'artista desconocido', 'desconocido', 
                         'track 01', 'track 02', 'track 03', 'track 04', 'track 05', 
-                        'track 06', 'track 07', 'track 08', 'track 09', 'track 10']
+                        'track 06', 'track 07', 'track 08', 'track 09', 'track 10', 
+                        'track 11', 'track 12', 'track 13', 'track 14', 'track 15', 
+                        'track 16', 'track 17', 'track 18', 'track 19', 'track 20', 
+                        'track 21', 'track 22', 'track 23', 'track 24', 'track 25', 
+                        'track 26', 'track 27', 'track 28', 'track 29', 'track 30']
             # Verificar si es solo "track XX"
             if lv.startswith('track') and len(lv.split()) == 2:
                 return False
